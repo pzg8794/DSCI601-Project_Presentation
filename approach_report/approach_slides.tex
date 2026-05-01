@@ -41,7 +41,7 @@ The approach evaluates \mab, \cmab, and \icmab{} policies to test what happens w
 \begin{tikzpicture}[
   font=\scriptsize,
   phasebox/.style={draw, rounded corners=4pt, align=center,
-              text width=1.66cm, minimum height=0.72cm,
+              text width=1.58cm, minimum height=0.72cm,
               inner sep=3pt, text=white, font=\scriptsize\bfseries},
   phase1/.style={phasebox, fill=phase1blue},
   phase2/.style={phasebox, fill=phase2green},
@@ -54,8 +54,8 @@ The approach evaluates \mab, \cmab, and \icmab{} policies to test what happens w
 % Background bands, drawn first so the figure matches the approach-report style.
 \fill[phase1blue!12, rounded corners=6pt]   (-0.65,-2.05) rectangle (3.90,2.05);
 \fill[phase2green!12, rounded corners=6pt]  (4.10,-2.05) rectangle (6.70,2.05);
-\fill[phase3orange!12, rounded corners=6pt] (6.95,-2.05) rectangle (10.55,2.05);
-\fill[phase4purple!12, rounded corners=6pt] (10.85,-2.05) rectangle (16.05,2.05);
+\fill[phase3orange!12, rounded corners=6pt] (6.95,-2.05) rectangle (11.05,2.05);
+\fill[phase4purple!12, rounded corners=6pt] (11.25,-2.05) rectangle (17.10,2.05);
 
 \node[phase1] (clin) at (0.45,0.55) {Clinical\\Routing};
 \node[phase1] (quant) at (0.45,-0.55) {Quantum\\Routing};
@@ -64,12 +64,12 @@ The approach evaluates \mab, \cmab, and \icmab{} policies to test what happens w
 \node[phase2] (deg) at (5.40,0.70) {Missing / Noisy /\\Delayed Context};
 \node[phase2] (ctx) at (5.40,-0.45) {Observed\\Context};
 
-\node[phase3] (pol) at (7.75,0.00) {Policy Family\\MAB / CMAB / iCMAB};
-\node[phase3] (act) at (9.45,0.00) {Routing\\Action};
+\node[phase3] (pol) at (7.65,0.00) {Policy Family\\MAB / CMAB / iCMAB};
+\node[phase3] (act) at (9.85,0.00) {Routing\\Action};
 
-\node[phase4] (fb)  at (11.70,-0.85) {Partial Feedback\\and Reward};
-\node[phase4] (log) at (13.25,0.55) {Utility + Fairness\\Logger};
-\node[phase4] (mit) at (15.05,-0.85) {Mitigation +\\Comparison Loop};
+\node[phase4] (fb)  at (12.10,-0.85) {Partial Feedback\\and Reward};
+\node[phase4] (log) at (13.95,0.55) {Utility + Fairness\\Logger};
+\node[phase4] (mit) at (16.10,-0.85) {Mitigation +\\Comparison Loop};
 
 \draw[arr] (clin)--(env);
 \draw[arr] (quant)--(env);
@@ -84,8 +84,8 @@ The approach evaluates \mab, \cmab, and \icmab{} policies to test what happens w
 
 \node[lbl, text=phase1blue]   at (1.60,-1.78) {\textbf{Phase 1}\\Environment};
 \node[lbl, text=phase2green]  at (5.40,-1.78) {\textbf{Phase 2}\\Context};
-\node[lbl, text=phase3orange] at (8.75,-1.78) {\textbf{Phase 3}\\Decision};
-\node[lbl, text=phase4purple] at (13.45,-1.78) {\textbf{Phase 4}\\Evaluation};
+\node[lbl, text=phase3orange] at (8.95,-1.78) {\textbf{Phase 3}\\Decision};
+\node[lbl, text=phase4purple] at (14.20,-1.78) {\textbf{Phase 4}\\Evaluation};
 \end{tikzpicture}%
 }
 
