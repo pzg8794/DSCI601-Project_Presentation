@@ -1,13 +1,30 @@
+% Self-contained architecture diagram for the DSCI601 final presentation.
+% This file is intentionally safe to \input{} from main.tex.
+% It defines its own colors and avoids external TikZ library assumptions beyond arrows.meta/positioning/fit/calc.
+
+\providecolor{phase1blue}{RGB}{52,152,219}
+\providecolor{phase2green}{RGB}{46,204,113}
+\providecolor{phase3orange}{RGB}{230,126,34}
+\providecolor{phase4purple}{RGB}{155,89,182}
+
 \begin{tikzpicture}[
 font=\sffamily,
 >=Latex,
-layerband/.style={rectangle,rounded corners,inner sep=10pt,line width=1.1pt,draw=black!35},
-box/.style={rectangle,draw=black,rounded corners,minimum height=1.15cm,text width=3.9cm,align=center,fill=gray!8,line width=1.0pt,font=\sffamily\small},
-widebox/.style={rectangle,draw=black,rounded corners,minimum height=1.25cm,text width=5.1cm,align=center,fill=gray!8,line width=1.0pt,font=\sffamily\small},
-smallbox/.style={rectangle,draw=black,rounded corners,minimum height=0.9cm,text width=3.2cm,align=center,fill=gray!6,line width=0.9pt,font=\sffamily\scriptsize},
-flow/.style={->,line width=0.85pt},
-trace/.style={->,dashed,line width=0.70pt},
+layerlabel/.style={font=\sffamily\scriptsize\bfseries,align=center},
+box/.style={rectangle,draw=black,rounded corners,minimum height=1.05cm,text width=3.65cm,align=center,fill=gray!8,line width=0.9pt,font=\sffamily\small},
+widebox/.style={rectangle,draw=black,rounded corners,minimum height=1.12cm,text width=4.95cm,align=center,fill=gray!8,line width=0.9pt,font=\sffamily\small},
+smallbox/.style={rectangle,draw=black,rounded corners,minimum height=0.82cm,text width=3.05cm,align=center,fill=gray!6,line width=0.8pt,font=\sffamily\scriptsize},
+flow/.style={->,line width=0.80pt},
+trace/.style={->,dashed,line width=0.65pt},
 lab/.style={font=\sffamily\scriptsize,align=center}]
+
+% Layer labels
+\node[layerlabel,text=phase1blue!80!black] at (5.8,9.1) {Research context};
+\node[layerlabel,text=phase2green!60!black] at (6.6,6.45) {Control and validation layer};
+\node[layerlabel,text=phase3orange!75!black] at (7.0,3.25) {Execution layer: clinical and quantum paths};
+\node[layerlabel,text=phase4purple!75!black] at (6.2,-0.10) {Policy, allocation, mediation, and fairness--performance synthesis};
+\node[layerlabel,text=phase4purple!75!black] at (5.7,-3.20) {Artifacts layer};
+\node[layerlabel,text=red!70!black] at (8.25,-5.35) {Next-semester extension points};
 
 % Top research context
 \node[widebox,fill=phase1blue!16] (objective) at (0,8.2)
@@ -80,8 +97,6 @@ lab/.style={font=\sffamily\scriptsize,align=center}]
 \draw[trace] (alloc) -- (clinenv);
 \draw[trace] (fair) -- (validation);
 \draw[trace] (fair) -- (review);
-
-% Artifact traces
 \draw[trace] (fixture) -- (a1);
 \draw[trace] (clinenv) -- (a2);
 \draw[trace] (alloc) -- (a3);
@@ -92,23 +107,5 @@ lab/.style={font=\sffamily\scriptsize,align=center}]
 \draw[trace] (n2) -- (models);
 \draw[trace] (n3) -- (quantum);
 \draw[trace] (n4) -- (a5);
-
-% Layer bands
-\begin{scope}[on background layer]
-\node[layerband,fill=phase1blue!7,fit=(objective)(criteria)] {};
-\node[layerband,fill=phase2green!7,fit=(entry)(review)] {};
-\node[layerband,fill=phase3orange!8,fit=(fixture)(eval)] {};
-\node[layerband,fill=phase4purple!10,fit=(models)(fair)] {};
-\node[layerband,fill=phase4purple!5,fit=(a1)(a5)] {};
-\node[layerband,fill=red!4,fit=(n1)(n4)] {};
-\end{scope}
-
-% Layer labels
-\node[lab,text=phase1blue!80!black] at (5.8,9.35) {High-level research context};
-\node[lab,text=phase2green!60!black] at (6.6,6.65) {Control and validation layer};
-\node[lab,text=phase3orange!75!black] at (7.0,3.45) {Execution layer: clinical and quantum paths};
-\node[lab,text=phase4purple!75!black] at (6.2,0.05) {Policy, allocation, mediation, and fairness--performance synthesis};
-\node[lab,text=phase4purple!75!black] at (5.7,-3.05) {Artifacts layer};
-\node[lab,text=red!70!black] at (8.25,-5.25) {Next-semester extension points};
 
 \end{tikzpicture}
