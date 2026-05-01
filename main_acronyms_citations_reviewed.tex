@@ -1,0 +1,654 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+\title[Fairness-Aware Routing]{Fairness-Aware Routing in Quantum Networks \& Clinical Settings}
+\subtitle{via Multi-Armed, Contextual, and Informative Bandit Methods}
+\author[P. Z. Garcia]{Piter Z. Garcia\\Advisors: Daniel Krutz and Travis Desell}
+\institute[RIT]{Rochester Institute of Technology\\DSCI 601 -- Applied Data Science I}
+\date{Final Presentation}
+
+\definecolor{ritorange}{RGB}{247,105,2}
+\definecolor{deepblue}{RGB}{31,78,121}
+\definecolor{softgreen}{RGB}{72,160,98}
+\definecolor{softred}{RGB}{190,75,72}
+\definecolor{softgray}{RGB}{245,247,250}
+\definecolor{softblue}{RGB}{88,137,174}
+\definecolor{softpurple}{RGB}{135,99,171}
+\definecolor{phase1blue}{RGB}{52,152,219}
+\definecolor{phase2green}{RGB}{46,204,113}
+\definecolor{phase3orange}{RGB}{230,126,34}
+\definecolor{phase4purple}{RGB}{155,89,182}
+
+\setbeamercolor{title}{fg=deepblue}
+\setbeamercolor{frametitle}{fg=deepblue}
+\setbeamercolor{structure}{fg=ritorange}
+
+\newcommand{\mab}{\textsc{MAB}}
+\newcommand{\cmab}{\textsc{CMAB}}
+\newcommand{\icmab}{\textsc{iCMAB}}
+\newcommand{\sds}{\textsc{SDS}}
+\newcommand{\equitas}{\textsc{EQUITAS}}
+\newcommand{\slidefoot}[1]{\vspace{0.25em}{\tiny\color{gray!75}\raggedright #1\par}}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+  \vspace{-1.0em}
+  {\tiny\color{gray!75}Acronyms: RIT = Rochester Institute of Technology; DSCI = Data Science course sequence.}
+\end{frame}
+
+\begin{frame}{15-Minute Presentation Plan}
+\begin{enumerate}
+    \item Project overview and why it matters.
+    \item Updated domain model for clinical and quantum routing.
+    \item Approach: four-phase evaluation model and MAB, CMAB, and iCMAB comparison.
+    \item Updated implementation-aware architecture overview.
+    \item Architecture changes and layer details.
+    \item GitHub code-review break tied to the architecture.
+    \item Demo plan, preliminary results, and next-semester completion.
+\end{enumerate}
+\slidefoot{Acronyms: MAB = multi-armed bandit; CMAB = contextual multi-armed bandit; iCMAB = informative contextual multi-armed bandit; GitHub = source-control and code-review platform. Sources: DSCI601 Project Proposal and DSCI601 Workspace.}
+\end{frame}
+
+\begin{frame}{Project Overview}
+\begin{block}{What this project is}
+This project studies \textbf{fairness-aware routing under missing context} in two environment families: \textbf{clinical decision support} and \textbf{quantum-network routing}.
+\end{block}
+\begin{block}{Shared problem}
+Both domains are \textbf{sequential decision systems}: they allocate scarce resources under uncertainty, observe only partial feedback, and update future decisions from incomplete evidence.
+\end{block}
+\textbf{Project goals}
+\begin{itemize}
+    \item Compare \mab, \cmab, and \icmab{} strategies.
+    \item Measure both \textbf{performance} and \textbf{fairness}.
+    \item Show how missing or degraded context can create repeated allocation harm.
+    \item Build a reproducible framework with reportable artifacts.
+\end{itemize}
+\slidefoot{Acronyms: MAB = multi-armed bandit; CMAB = contextual multi-armed bandit; iCMAB = informative contextual multi-armed bandit; SDS = sequential decision system. Sources: Auer et al. (2002); Li et al. (2010); Lattimore and Szepesvari (2020); DSCI601 Project Proposal.}
+\end{frame}
+
+\begin{frame}{Why This Project Matters}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\begin{block}{Clinical impact}
+Routing decisions affect real patient outcomes.
+\end{block}
+
+\begin{itemize}
+    \item Who receives a diagnostic test?
+    \item Who gets retested or escalated?
+    \item Whose risk is missed because context is incomplete?
+\end{itemize}
+
+\vspace{0.4em}
+
+\alert{A policy can look accurate on average while still delaying access to critical resources/care for a vulnerable group.}
+\end{column}
+
+\begin{column}{0.48\textwidth}
+\begin{block}{Quantum-network impact}
+Routing decisions affect service quality under noisy conditions.
+\end{block}
+
+\begin{itemize}
+    \item Which path gets selected?
+    \item Which flows receive scarce qubit or link resources?
+    \item Which users experience repeated failure or latency?
+\end{itemize}
+
+\vspace{0.4em}
+
+\alert{A policy can maximize total throughput while still giving some flows consistently worse service.}
+\end{column}
+\end{columns}
+
+\vspace{0.6em}
+
+\begin{block}{Core reason this matters}
+Fairness-aware routing asks whether the system is making good decisions
+\textbf{for everyone affected}, not only good decisions on average.
+\end{block}
+\slidefoot{Clinical sources: Sjoding et al. (2020); Fawzy et al. (2022). Quantum-network sources: Wehner et al. (2018); Pant et al. (2019); DSCI601 quantum-routing materials.}
+\end{frame}
+
+\begin{frame}{Updated Domain Model}
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[
+  font=\scriptsize,
+  phasebox/.style={draw, rounded corners=4pt, align=center,
+              text width=1.72cm, minimum height=0.72cm,
+              inner sep=3pt, text=white, font=\scriptsize\bfseries},
+  phase1/.style={phasebox, fill=phase1blue},
+  phase2/.style={phasebox, fill=phase2green},
+  phase3/.style={phasebox, fill=phase3orange},
+  phase4/.style={phasebox, fill=phase4purple},
+  arr/.style={-Stealth, thick, gray!65},
+  darr/.style={-Stealth, thick, dashed, gray!55},
+  lbl/.style={font=\scriptsize\bfseries, align=center}
+]
+\fill[phase1blue!12, rounded corners=6pt]   (-0.65,-2.10) rectangle (4.10,2.15);
+\fill[phase2green!12, rounded corners=6pt]  (4.30,-2.10) rectangle (7.40,2.15);
+\fill[phase3orange!12, rounded corners=6pt] (7.65,-2.10) rectangle (11.90,2.15);
+\fill[phase4purple!12, rounded corners=6pt] (12.15,-2.10) rectangle (18.25,2.15);
+
+\node[phase1] (clin) at (0.55,0.62) {Clinical\\Resource Routing};
+\node[phase1] (quant) at (0.55,-0.62) {Quantum\\Network Routing};
+\node[phase1, double, double distance=1.4pt] (env) at (3.00,0.00) {Environment /\\Testbed};
+
+\node[phase2] (deg) at (5.85,0.72) {Missing / Noisy /\\Delayed Context};
+\node[phase2] (ctx) at (5.85,-0.52) {Observed\\Context};
+
+\node[phase3] (pol) at (8.70,0.00) {Policy / Model\\MAB--CMAB--iCMAB};
+\node[phase3] (act) at (10.80,0.00) {Routing\\Action};
+
+\node[phase4] (fb)  at (13.05,-0.86) {Partial Feedback\\success / reward};
+\node[phase4] (log) at (15.05,0.60) {Utility + Fairness\\Logger};
+\node[phase4] (mit) at (17.15,-0.86) {Mitigation +\\Artifacts};
+
+\draw[arr] (clin)--(env);
+\draw[arr] (quant)--(env);
+\draw[arr] (env)--(ctx);
+\draw[arr] (deg)--(ctx);
+\draw[arr] (ctx)--(pol);
+\draw[arr] (pol)--(act);
+\draw[arr] (act)--(fb);
+\draw[arr] (act)--(log);
+\draw[arr] (fb)--(log);
+\draw[arr] (log)--(mit);
+\draw[darr] (mit.south) to[bend right=18] (pol.south);
+
+\node[lbl, text=phase1blue]   at (1.75,-1.82) {\textbf{Phase 1}\\Environment};
+\node[lbl, text=phase2green]  at (5.85,-1.82) {\textbf{Phase 2}\\Context};
+\node[lbl, text=phase3orange] at (9.78,-1.82) {\textbf{Phase 3}\\Decision};
+\node[lbl, text=phase4purple] at (15.20,-1.82) {\textbf{Phase 4}\\Evaluation};
+\end{tikzpicture}%
+}
+
+\vspace{0.45em}
+\scriptsize
+\begin{tabular}{p{0.22\textwidth}p{0.65\textwidth}}
+\toprule
+\textbf{Domain element} & \textbf{Current implementation mapping} \\
+\midrule
+Environment / testbed & \texttt{ClinicalEnvironment} plus preserved quantum-routing testbed path \\
+Context observation & site/cohort/service context, missing-context flags, stale/noisy route information \\
+Policy / action & \texttt{ClinicalModelRegistry}, \texttt{FairAllocatorV1}, \texttt{ClinicalBanditUCB}, MAB/CMAB/iCMAB routing policies \\
+Evaluation / mitigation & partial feedback, \texttt{ClinicalEquitasMediator}, fairness states, summaries, manifests, figures \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.25em}
+\begin{itemize}\scriptsize
+  \item The model captures the shared SDS loop: only the chosen action creates observed feedback; unchosen actions remain counterfactual.
+  \item Fairness risk appears when context quality is systematically worse for one group, site, cohort, or route class.
+\end{itemize}
+\slidefoot{Acronyms: MAB = multi-armed bandit; CMAB = contextual multi-armed bandit; iCMAB = informative contextual multi-armed bandit; SDS = sequential decision system. Sources: DSCI601 approach report; DSCI601 workspace clinical and quantum implementation.}
+\end{frame}
+
+\begin{frame}{Why the Domain Model Changed}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\centering
+\textbf{Old domain view}
+
+\vspace{0.3em}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  node distance=0.42cm,
+  smallbox/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softgray},
+  bad/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softred!18},
+  good/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softgreen!18},
+  arr/.style={-{Stealth}, thick}
+]
+\node[smallbox] (env) {Environment};
+\node[bad, right=0.35cm of env] (ctx) {Context};
+\node[smallbox, right=0.35cm of ctx] (pol) {Policy};
+\node[smallbox, right=0.35cm of pol] (act) {Action};
+\node[good, below=0.55cm of act] (out) {Reward + Fairness};
+\node[smallbox, left=0.35cm of out] (rep) {Reporting};
+\node[bad, left=0.35cm of rep] (harm) {Disparity};
+
+\draw[arr] (env) -- (ctx);
+\draw[arr] (ctx) -- (pol);
+\draw[arr] (pol) -- (act);
+\draw[arr] (act) -- (out);
+\draw[arr] (out) -- (rep);
+\draw[arr] (rep) -- (harm);
+\draw[arr,dashed] (harm.west) to[bend right=35] (pol.south);
+\end{tikzpicture}}
+\vspace{0.35em}
+
+{\scriptsize Compact pipeline, but reward, fairness, reporting, and mitigation were merged together.}
+\end{column}
+
+\begin{column}{0.48\textwidth}
+\centering
+\textbf{Updated domain view: simplified}
+
+\vspace{0.3em}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  node distance=0.42cm,
+  smallbox/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softgray},
+  bad/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softred!18},
+  good/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softgreen!18},
+  orangebox/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=ritorange!18},
+  arr/.style={-{Stealth}, thick}
+]
+\node[smallbox] (env) {Environment};
+\node[bad, right=0.35cm of env] (ctx) {Observed Context};
+\node[orangebox, right=0.35cm of ctx] (pol) {Policy / Model};
+\node[smallbox, right=0.35cm of pol] (act) {Routing Action};
+\node[good, below=0.55cm of act] (out) {Partial Feedback};
+\node[good, left=0.35cm of out] (fair) {Fairness State};
+\node[smallbox, left=0.35cm of fair] (rep) {Artifacts};
+
+\draw[arr] (env) -- (ctx);
+\draw[arr] (ctx) -- (pol);
+\draw[arr] (pol) -- (act);
+\draw[arr] (act) -- (out);
+\draw[arr] (out) -- (fair);
+\draw[arr] (fair) -- (rep);
+\draw[arr,dashed] (fair.west) to[bend right=35] (pol.south);
+\end{tikzpicture}}
+\vspace{0.35em}
+
+{\scriptsize Simplified view of the full four-phase model: environment, context, decision, and evaluation.}
+\end{column}
+\end{columns}
+
+\vspace{0.6em}
+\begin{block}{Why this matters}
+\begin{itemize}
+    \item The old view showed the general flow, but it hid where fairness risk enters the system.
+    \item The updated view separates \textbf{context quality}, \textbf{policy decision}, \textbf{partial feedback}, and \textbf{fairness/reporting}.
+    \item This matches the current workspace: clinical and quantum environments produce context, policies choose one action, and evaluators/mediators record feedback, fairness states, and artifacts.
+\end{itemize}
+\end{block}
+\slidefoot{Sources: DSCI601 approach report; DSCI601 architecture report; DSCI601 workspace clinical evaluator, mediator, fairness workflow, and legacy quantum sidecar.}
+\end{frame}
+
+\input{approach_report/approach_slides.tex}
+
+\begin{frame}{Updated Architecture Overview}
+\centering
+\vspace{-0.35em}
+\resizebox{0.98\textwidth}{!}{%
+\input{architecture_report/architecture_diagram.tex}
+}
+\vspace{-0.15em}
+\scriptsize
+\textbf{Read left to right:} research context and evidence feed controlled runs; clinical and quantum execution paths produce evaluation records; allocation, EQUITAS mediation, and fairness--performance synthesis generate reviewable artifacts.
+\slidefoot{Acronyms: EQUITAS = fairness audit and mitigation boundary. Sources: DSCI601 architecture report; DSCI601 workspace implementation.}
+\end{frame}
+
+\begin{frame}{What Changed in the Current Architecture}
+\small
+\begin{tabular}{p{0.24\textwidth}p{0.34\textwidth}p{0.32\textwidth}}
+\toprule
+\textbf{Region} & \textbf{Current implementation} & \textbf{Why it matters} \\
+\midrule
+Clinical execution path & \texttt{ClinicalEnvironment}, \texttt{ClinicalExperimentRunner}, \texttt{ClinicalExperimentEvaluator} & Clinical work is executable through a runner/evaluator path. \\
+Policy/model path & \texttt{ClinicalModelRegistry}: Oracle, ClinicalBaseline, FairAllocatorV1, ClinicalBanditUCB & The deck can discuss actual model families rather than generic policy boxes. \\
+Allocation + mediation & \texttt{ClinicalDefaultResourceAllocator} and \texttt{ClinicalEquitasMediator} & Fairness connects to allocation decisions through mediation, not only post-hoc reporting. \\
+Quantum path & legacy quantum notebooks, saved states, state-analysis outputs & Existing quantum routing work remains preserved and feeds the same evaluation surface. \\
+Artifacts layer & fairness states, summaries, figures, manifests, reports & The architecture produces evidence that can be reviewed, reproduced, and cited. \\
+\bottomrule
+\end{tabular}
+\slidefoot{Acronyms: UCB = upper confidence bound. Sources: DSCI601 workspace clinical experiment path, clinical model registry, allocator, mediator, fairness workflow, and legacy quantum sidecar.}
+\end{frame}
+
+\begin{frame}{Architecture Layer 1: Research Context}
+\centering
+\vspace{-0.35em}
+\includegraphics[width=0.96\textwidth]{figures/layer1_research_context_evidence.png}
+\vspace{-0.25em}
+\slidefoot{Acronyms: COVID = coronavirus disease 2019; NEJM = New England Journal of Medicine. Clinical sources: Sjoding et al. (2020, NEJM); Fawzy et al. (2022, JAMA Internal Medicine). Simulation source: current DSCI601 workspace clinical smoke/reporting artifacts.}
+\end{frame}
+
+\begin{frame}{Architecture Layer 2: Control and Validation}
+\small
+
+\begin{block}{Role in the architecture}
+This layer governs existing runs: it converts configs and states into reproducible fairness workflows, resolves execution mode and datalake paths, evaluates states, builds reports, exports summaries, and persists artifacts.
+\end{block}
+
+\begin{columns}[T]
+\begin{column}{0.32\textwidth}
+\textbf{\textcolor{phase2green}{Controlled inputs}}
+\begin{itemize}
+    \item \texttt{RunSpec}
+    \item \texttt{FairnessSpec}
+    \item \texttt{ProvenanceSpec}
+    \item clinical evaluator states
+    \item quantum saved states
+    \item baseline comparison states
+\end{itemize}
+\end{column}
+
+\begin{column}{0.34\textwidth}
+\textbf{\textcolor{phase2green}{Governed workflow}}
+\begin{itemize}
+    \item \texttt{FairnessWorkflow}
+    \item \texttt{RunSpecLoader}
+    \item \texttt{FairnessEvaluationService}
+    \item \texttt{FairnessReportBuilder}
+    \item \texttt{FairnessExportService}
+    \item by-model summary builder
+\end{itemize}
+\end{column}
+
+\begin{column}{0.30\textwidth}
+\textbf{\textcolor{phase2green}{Validation outputs}}
+\begin{itemize}
+    \item execution-mode payload
+    \item datalake run root
+    \item fairness report
+    \item markdown / CSV exports
+    \item persisted artifact paths
+    \item workflow context
+\end{itemize}
+\end{column}
+\end{columns}
+
+\begin{block}{Current status}
+The control layer now supports clinical and quantum fairness runs through shared \texttt{RunSpec}-based orchestration, datalake persistence, report/export generation, and by-model summaries. The remaining work is to tighten final-project validation: connect each claim to its run spec, fairness states, artifacts, figures, and report evidence.
+\end{block}
+\slidefoot{Acronyms: CSV = comma-separated values; RunSpec/FairnessSpec/ProvenanceSpec = run, fairness, and provenance contracts. Source: DSCI601 workspace FairnessWorkflow, RunSpecLoader, FairnessEvaluationService, FairnessReportBuilder, FairnessExportService, and FairnessArtifactWriter.}
+\end{frame}
+
+\begin{frame}{Architecture Layer 3: Execution}
+\small
+
+\begin{block}{Role in the architecture}
+This layer is where the research becomes executable: clinical and quantum testbeds run controlled decision scenarios, emit partial-feedback records, and produce fairness-ready states for evaluation and reporting.
+\end{block}
+
+\vspace{-0.1cm}
+
+\begin{columns}[T]
+\begin{column}{0.40\textwidth}
+\textbf{\textcolor{phase3orange}{Clinical execution}}
+\begin{itemize}
+    \item \texttt{SyntheticClinicalFixturePipeline}
+    \item \texttt{ClinicalEnvironment}
+    \item \texttt{ClinicalExperimentRunner}
+    \item \texttt{ClinicalExperimentEvaluator}
+    \item \texttt{ClinicalFairnessSidecarBridge}
+    \item \texttt{ClinicalEquitasMediator}
+\end{itemize}
+\end{column}
+
+\begin{column}{0.38\textwidth}
+\textbf{\textcolor{phase3orange}{Quantum execution}}
+\begin{itemize}
+    \item preserved quantum-routing workflow
+    \item notebook/local/GCP execution paths
+    \item saved evaluator and model states
+    \item state-analysis outputs
+    \item fairness sidecar compatibility
+    \item \texttt{QuantumEquitasMediator}
+\end{itemize}
+\end{column}
+
+\begin{column}{0.26\textwidth}
+\textbf{\textcolor{phase3orange}{Run outputs}}
+\begin{itemize}
+    \item observed context
+    \item selected action
+    \item allocation decision
+    \item mediation decision
+    \item success/latency/reward
+    \item fairness states
+\end{itemize}
+\end{column}
+\end{columns}
+
+\vspace{-0.1cm}
+
+\begin{block}{Current execution status}
+The clinical path is executable: the evaluator runs clinical scenarios, the runner records per-case decisions/outcomes, and the sidecar converts those states into fairness artifacts. The quantum path is preserved through the existing routing workflow. Remaining work: scale the runs, connect artifacts to the validation hub, and use the COVID testing and pulse-ox evidence cases as documented clinical validation scenarios.
+\end{block}
+\slidefoot{Acronyms: GCP = Google Cloud Platform; COVID = coronavirus disease 2019. Sources: DSCI601 workspace ClinicalExperimentEvaluator, ClinicalExperimentRunner, ClinicalEnvironment, SyntheticClinicalFixturePipeline, ClinicalEquitasMediator, QuantumEquitasMediator, and legacy quantum sidecar path.}
+\end{frame}
+
+\begin{frame}{Architecture Layer 4: Policy, Allocation, and Mediation}
+\small
+\vspace{-0.2cm}
+\begin{block}{Role in the architecture}
+Here routing decisions are made. A model selects an action from partial context, EQUITAS mediation decides whether the case is audit-only or mitigation-targeted, and the allocator turns it into an executable resource priority.
+\end{block}
+
+\vspace{-0.1cm}
+
+\begin{columns}[T]
+\begin{column}{0.36\textwidth}
+\textbf{\textcolor{phase4purple}{Policy / model family}}
+\begin{itemize}
+    \item \texttt{ClinicalModelRegistry}
+    \item \texttt{Oracle}: reference upper bound
+    \item \texttt{ClinicalBaseline}: standard care
+    \item \texttt{FairAllocatorV1}: EQUITAS-style context repair
+    \item \texttt{ClinicalBanditUCB}: lightweight contextual-bandit policy
+\end{itemize}
+\end{column}
+
+\begin{column}{0.37\textwidth}
+\textbf{\textcolor{phase4purple}{Allocation decision}}
+\begin{itemize}
+    \item \texttt{ClinicalDefaultResourceAllocator}
+    \item site capacity: \texttt{hospital\_a/b/c}
+    \item service weights: emergency, inpatient, outpatient
+    \item model/risk/EQUITAS priority bonuses
+    \item labels: expedited, standard-priority, routine
+\end{itemize}
+\end{column}
+
+\begin{column}{0.30\textwidth}
+\textbf{\textcolor{phase4purple}{Mediation boundary}}
+\begin{itemize}
+    \item \texttt{ClinicalEquitasMediator}
+    \item \texttt{QuantumEquitasMediator}
+    \item detects limited or missing context
+    \item modes: audit vs. mitigate
+    \item emits priority, success, latency, and reward adjustments
+\end{itemize}
+\end{column}
+\end{columns}
+
+\vspace{-0.1cm}
+
+\begin{block}{Current status}
+This layer is wired into execution: each clinical case produces decisions such as a model, an EQUITAS mediation, an allocation decision, and observed outcomes. Those fields are stored in the run state, so we can trace harm back to the policy action, mediation mode, priority score, allocation label, and partial-feedback outcome.
+\end{block}
+\slidefoot{Acronyms: EQUITAS = fairness audit and mitigation boundary; UCB = upper confidence bound. Sources: DSCI601 workspace ClinicalModelRegistry, ClinicalDefaultResourceAllocator, ClinicalEquitasMediator, QuantumEquitasMediator, and ClinicalBanditUCBModel.}
+\end{frame}
+
+\begin{frame}{Architecture Layer 5: Artifacts and Reporting}
+\small
+
+\begin{block}{Role in the architecture}
+The evidence layer. It persists fairness evaluation outputs, provenance, summaries, records, outcomes, execution-mode metadata, and by-model summaries so results can be audited.
+\end{block}
+
+\vspace{-0.1cm}
+
+\begin{columns}[T]
+\begin{column}{0.31\textwidth}
+\textbf{\textcolor{phase4purple}{State + provenance}}
+\begin{itemize}
+    \item clinical fairness states
+    \item quantum saved-state outputs
+    \item \texttt{RunSpec}
+    \item \texttt{ProvenanceSpec}
+    \item execution mode
+    \item datalake run root
+\end{itemize}
+\end{column}
+
+\begin{column}{0.38\textwidth}
+\textbf{\textcolor{phase4purple}{Persisted artifacts}}
+\begin{itemize}
+    \item \texttt{fairness\_summary.json}
+    \item \texttt{fairness\_records.json}
+    \item \texttt{fairness\_outcomes.json}
+    \item \texttt{fairness\_analysis.json}
+    \item \texttt{fairness\_by\_model\_summary.json}
+    \item \texttt{fairness\_manifest.json}
+\end{itemize}
+\end{column}
+
+\begin{column}{0.30\textwidth}
+\textbf{\textcolor{phase4purple}{Report evidence}}
+\begin{itemize}
+    \item markdown / CSV exports
+    \item model-stratified summaries
+    \item fairness gap tables
+    \item utility--fairness comparisons
+    \item figures and validation plots
+    \item final report claims
+\end{itemize}
+\end{column}
+\end{columns}
+
+\vspace{-0.1cm}
+
+\begin{block}{Current status}
+This layer exists through \texttt{FairnessWorkflow} and \texttt{FairnessArtifactWriter}: runs produce summaries, records, outcomes, manifests, analysis payloads, execution-mode files, and by-model summaries. We need to organize these artifacts into the final validation hub so each claim points to its configuration, generated evidence, figure, and reproducibility metadata.
+\end{block}
+\slidefoot{Acronyms: CSV = comma-separated values; JSON = JavaScript Object Notation; RunSpec = run contract. Sources: DSCI601 workspace FairnessWorkflow, FairnessArtifactWriter, FairnessArtifactPaths, fairness reports, and validation-hub artifacts.}
+\end{frame}
+
+\begin{frame}{GitHub Code Review Break}
+\begin{block}{Goal of this section}
+Show how the architecture is implemented in code across both domains: 
+\textbf{clinical execution}, \textbf{quantum routing}, and the shared 
+\textbf{fairness/artifact pipeline}.
+\end{block}
+
+\scriptsize
+\begin{tabular}{p{0.16\textwidth}p{0.22\textwidth}p{0.54\textwidth}}
+\toprule
+\textbf{Architecture layer} & \textbf{Code to show} & \textbf{What it demonstrates} \\
+\midrule
+
+Clinical execution &
+\texttt{clinical\_experiment.py} &
+clinical environment, runner, evaluator, allocator, mediation, and fairness-ready state records \\
+
+Clinical policy layer &
+\texttt{clinical\_models.py} &
+baseline, fairness-aware, and bandit-style clinical policies through a shared model interface \\
+
+Shared mediation boundary &
+\texttt{equitas\_mediator.py} &
+clinical and quantum EQUITAS mediation using a shared fairness contract with domain-specific context signals \\
+
+Quantum execution bridge &
+{\tiny\texttt{run\_old\_pipeline\_smoke\_with\_fairness.py}} &
+preserved quantum-routing evaluator connected to fairness artifact generation \\
+
+Quantum sidecar layer &
+\texttt{fairness\_legacy\_sidecar.py} &
+conversion of legacy quantum outputs into fairness states compatible with the shared workflow \\
+
+Control and artifacts &
+\texttt{fairness\_workflow.py}, \texttt{fairness\_persistence.py} &
+RunSpec-driven evaluation, datalake persistence, summaries, records, outcomes, manifests, and by-model reports \\
+
+\bottomrule
+\end{tabular}
+
+\begin{block}{Live code-review walkthrough}
+The walkthrough guide links to code files that include inline 
+\texttt{Architecture note:} comments above the landmarks used in the demo.\\
+\href{https://github.com/pzg8794/DSCI601-workspace/blob/main/docs/presentation/CODE_PRESENTATION_GUIDE.md}
+{Open the GitHub code walkthrough guide}.
+\end{block}
+\slidefoot{Acronyms: GitHub = source-control and code-review platform; EQUITAS = fairness audit and mitigation boundary; RunSpec = run contract. Source: DSCI601 workspace code walkthrough guide and linked source files.}
+\end{frame}
+
+\begin{frame}{Working Demo Plan}
+\small
+\begin{block}{Demo objective}
+Show that both domains connect to the same fairness/evidence pipeline: clinical execution, quantum-routing sidecar integration, and persisted fairness artifacts.
+\end{block}
+
+\vspace{0.25em}
+
+\begin{enumerate}
+    \item Open the GitHub walkthrough guide and follow the code landmarks with inline \texttt{Architecture note:} comments.
+    \item Show the \textbf{clinical execution path}: environment, runner, model registry, allocator, EQUITAS mediation, and fairness-ready states.
+    \item Show the \textbf{quantum execution bridge}: preserved legacy routing evaluator plus fairness sidecar attachment.
+    \item Show the \textbf{shared fairness pipeline}: \texttt{FairnessWorkflow} and \texttt{FairnessArtifactWriter}.
+    \item Open generated artifacts: fairness summaries, records, outcomes, manifests, by-model summaries, and validation figures.
+    \item Tie the demo back to the clinical evidence base: COVID testing allocation and pulse-ox reliability motivate the validation scenarios.
+\end{enumerate}
+
+\vspace{0.25em}
+
+\begin{block}{Demo takeaway}
+The project is not just a slide architecture: both clinical and quantum paths produce evidence that can be traced through states, summaries, manifests, and reproducible artifacts.
+\end{block}
+\slidefoot{Acronyms: GitHub = source-control and code-review platform; EQUITAS = fairness audit and mitigation boundary; COVID = coronavirus disease 2019. Sources: DSCI601 workspace code walkthrough guide, clinical reporting artifacts, fairness workflow, and legacy quantum sidecar.}
+\end{frame}
+
+\begin{frame}{Next Semester: Architecture Completion}
+\small
+\begin{block}{Current status}
+The core architecture is implemented and smoke-tested: clinical execution runs through environment, model, allocator, mediator, and evaluator components; the legacy quantum path connects through a fairness sidecar; and both paths feed shared fairness workflow, artifact persistence, and preliminary validation-hub reporting.
+\end{block}
+
+\vspace{-0.1cm}
+
+\begin{block}{What is not complete yet}
+The current work gives us a functioning framework and preliminary artifacts, but not the full cross-testbed/cross-domain experiment battery or final paper-ready validation hub.
+\end{block}
+
+\vspace{0.15cm}
+
+\begin{enumerate}\small
+    \item \textbf{Build the cross-testbed experiment suite:} run clinical and quantum settings under comparable missing-context, routing, and fairness conditions instead of only smoke/demo paths.
+    \item \textbf{Scale the clinical evidence cases:} expand COVID test allocation and pulse-ox reliability scenarios across seeds, cohorts, missingness levels, and policy families.
+    \item \textbf{Deepen fairness reporting:} move beyond artifact existence and model summaries into stronger disparity analysis, uncertainty, effect size, and cross-setting comparisons.
+    \item \textbf{Close the feedback loop:} use EQUITAS/fairness evidence to update future routing decisions, not only report fairness after the run.
+    \item \textbf{Finish the validation hub:} link every final research claim to run specs, generated states, figures, manifests, source evidence, and reproducibility metadata.
+\end{enumerate}
+\slidefoot{Acronyms: COVID = coronavirus disease 2019; EQUITAS = fairness audit and mitigation boundary. Sources: DSCI601 workspace fairness framework status, validation-hub artifacts, clinical reporting artifacts, and legacy quantum sidecar status.}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+\tiny
+\begin{thebibliography}{99}
+\bibitem{auer2002} Auer, P., Cesa-Bianchi, N., and Fischer, P. (2002). Finite-time analysis of the multiarmed bandit problem. \textit{Machine Learning}, 47, 235--256.
+\bibitem{li2010} Li, L., Chu, W., Langford, J., and Schapire, R. E. (2010). A contextual-bandit approach to personalized news article recommendation. \textit{WWW 2010}.
+\bibitem{lattimore2020} Lattimore, T., and Szepesvari, C. (2020). \textit{Bandit Algorithms}. Cambridge University Press.
+\bibitem{sjoding2020} Sjoding, M. W., Dickson, R. P., Iwashyna, T. J., Gay, S. E., and Valley, T. S. (2020). Racial bias in pulse oximetry measurement. \textit{New England Journal of Medicine}, 383(25), 2477--2478. doi:10.1056/NEJMc2029240.
+\bibitem{fawzy2022} Fawzy, A., Wu, T. D., Wang, K., et al. (2022). Racial and ethnic discrepancy in pulse oximetry and delayed identification of treatment eligibility among patients with COVID-19. \textit{JAMA Internal Medicine}, 182(7), 730--738. doi:10.1001/jamainternmed.2022.1906.
+\bibitem{wehner2018} Wehner, S., Elkouss, D., and Hanson, R. (2018). Quantum internet: A vision for the road ahead. \textit{Science}, 362(6412), eaam9288.
+\bibitem{pant2019} Pant, M., Krovi, H., Towsley, D., et al. (2019). Routing entanglement in the quantum internet. \textit{npj Quantum Information}, 5, 25.
+\bibitem{projectproposal} DSCI601 Project Proposal repository: approach report, architecture report, rough draft report, and clinical evidence analysis artifacts.
+\bibitem{workspace} DSCI601 Workspace repository: clinical experiment path, legacy quantum sidecar path, fairness workflow, artifact writer, reporting notebooks, validation hub, and code walkthrough guide.
+\end{thebibliography}
+\slidefoot{Acronyms appearing in references: COVID = coronavirus disease 2019; DSCI = Data Science course/project context.}
+\end{frame}
+
+\end{document}
