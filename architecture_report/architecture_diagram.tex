@@ -1,6 +1,6 @@
 % Self-contained architecture diagram for the DSCI601 final presentation.
 % This file is intentionally safe to \input{} from main.tex.
-% It defines its own colors and avoids external TikZ library assumptions beyond arrows.meta/positioning/fit/calc.
+% Compact vertical layout so the full diagram fits on one 16:9 slide.
 
 \providecolor{phase1blue}{RGB}{52,152,219}
 \providecolor{phase2green}{RGB}{46,204,113}
@@ -10,102 +10,140 @@
 \begin{tikzpicture}[
 font=\sffamily,
 >=Latex,
-layerlabel/.style={font=\sffamily\scriptsize\bfseries,align=center},
-box/.style={rectangle,draw=black,rounded corners,minimum height=1.05cm,text width=3.65cm,align=center,fill=gray!8,line width=0.9pt,font=\sffamily\small},
-widebox/.style={rectangle,draw=black,rounded corners,minimum height=1.12cm,text width=4.95cm,align=center,fill=gray!8,line width=0.9pt,font=\sffamily\small},
-smallbox/.style={rectangle,draw=black,rounded corners,minimum height=0.82cm,text width=3.05cm,align=center,fill=gray!6,line width=0.8pt,font=\sffamily\scriptsize},
-flow/.style={->,line width=0.80pt},
-trace/.style={->,dashed,line width=0.65pt},
-lab/.style={font=\sffamily\scriptsize,align=center}]
+layerlabel/.style={font=\sffamily\tiny\bfseries,align=center},
+box/.style={rectangle,draw=black,rounded corners,minimum height=0.82cm,text width=3.45cm,align=center,fill=gray!8,line width=0.8pt,font=\sffamily\scriptsize},
+widebox/.style={rectangle,draw=black,rounded corners,minimum height=0.88cm,text width=4.70cm,align=center,fill=gray!8,line width=0.8pt,font=\sffamily\scriptsize},
+smallbox/.style={rectangle,draw=black,rounded corners,minimum height=0.68cm,text width=2.95cm,align=center,fill=gray!6,line width=0.7pt,font=\sffamily\tiny},
+flow/.style={->,line width=0.70pt},
+trace/.style={->,dashed,line width=0.55pt},
+lab/.style={font=\sffamily\tiny,align=center}
+]
 
-% Layer labels
-\node[layerlabel,text=phase1blue!80!black] at (5.8,9.1) {Research context};
-\node[layerlabel,text=phase2green!60!black] at (6.6,6.45) {Control and validation layer};
-\node[layerlabel,text=phase3orange!75!black] at (7.0,3.25) {Execution layer: clinical and quantum paths};
-\node[layerlabel,text=phase4purple!75!black] at (6.2,-0.10) {Policy, allocation, mediation, and fairness--performance synthesis};
-\node[layerlabel,text=phase4purple!75!black] at (5.7,-3.20) {Artifacts layer};
-\node[layerlabel,text=red!70!black] at (8.25,-5.35) {Next-semester extension points};
+% -------------------------------------------------------------------------
+% Compact layer labels
+% -------------------------------------------------------------------------
+\node[layerlabel,text=phase1blue!80!black] at (5.8,6.95) {Research context};
+\node[layerlabel,text=phase2green!60!black] at (6.6,5.05) {Control and validation layer};
+\node[layerlabel,text=phase3orange!75!black] at (7.0,2.95) {Execution layer: clinical and quantum paths};
+\node[layerlabel,text=phase4purple!75!black] at (6.2,0.85) {Policy, allocation, mediation, and fairness--performance synthesis};
+\node[layerlabel,text=phase4purple!75!black] at (5.7,-1.10) {Artifacts layer};
+\node[layerlabel,text=red!70!black] at (8.25,-2.75) {Next-semester extension points};
 
+% -------------------------------------------------------------------------
 % Top research context
-\node[widebox,fill=phase1blue!16] (objective) at (0,8.2)
+% -------------------------------------------------------------------------
+\node[widebox,fill=phase1blue!16] (objective) at (0,6.25)
 {\textbf{Research Objective}\\fair routing under missing context\\clinical + quantum SDSs};
-\node[widebox,fill=phase1blue!16] (evidence) at (5.8,8.2)
+
+\node[widebox,fill=phase1blue!16] (evidence) at (5.8,6.25)
 {\textbf{Evidence + Data Context}\\COVID clinical foundation, synthetic fixture,\\quantum saved states and notebooks};
-\node[widebox,fill=phase1blue!16] (criteria) at (11.6,8.2)
+
+\node[widebox,fill=phase1blue!16] (criteria) at (11.6,6.25)
 {\textbf{Fairness Criteria}\\group/site/cohort gaps, flow service equity,\\utility--fairness tradeoffs};
 
+% -------------------------------------------------------------------------
 % Control layer
-\node[box,fill=phase2green!16] (entry) at (-2.2,5.5)
+% -------------------------------------------------------------------------
+\node[box,fill=phase2green!16] (entry) at (-2.2,4.35)
 {\textbf{Entry Points}\\GitHub, CLI, notebooks,\\Overleaf/report artifacts};
-\node[box,fill=phase2green!16] (runspec) at (2.2,5.5)
+
+\node[box,fill=phase2green!16] (runspec) at (2.2,4.35)
 {\textbf{RunSpec + Control Policy}\\seeds, models, thresholds,\\testbed and provenance};
-\node[box,fill=phase2green!16] (orchestration) at (6.6,5.5)
+
+\node[box,fill=phase2green!16] (orchestration) at (6.6,4.35)
 {\textbf{Orchestration}\\clinical evaluator / runner,\\quantum evaluator path};
-\node[box,fill=phase2green!16] (validation) at (11.0,5.5)
+
+\node[box,fill=phase2green!16] (validation) at (11.0,4.35)
 {\textbf{Validation Gates}\\unit tests, smoke checks,\\merge-check evidence};
-\node[box,fill=phase2green!16] (review) at (15.4,5.5)
+
+\node[box,fill=phase2green!16] (review) at (15.4,4.35)
 {\textbf{Review Decision}\\accept, revise, or reject\\based on executable artifacts};
 
-% Execution layer split
-\node[widebox,fill=phase3orange!16] (fixture) at (-1.0,2.3)
+% -------------------------------------------------------------------------
+% Execution layer
+% -------------------------------------------------------------------------
+\node[widebox,fill=phase3orange!16] (fixture) at (-1.0,2.25)
 {\textbf{Clinical Fixture Pipeline}\\SyntheticClinicalFixturePipeline\\non-PHI records and scenario metadata};
-\node[widebox,fill=phase3orange!16] (clinenv) at (4.4,2.3)
+
+\node[widebox,fill=phase3orange!16] (clinenv) at (4.4,2.25)
 {\textbf{Clinical Execution Path}\\ClinicalEnvironment $\rightarrow$ ClinicalExperimentRunner\\case iteration, model decisions, allocation};
-\node[widebox,fill=phase3orange!16] (quantum) at (9.8,2.3)
+
+\node[widebox,fill=phase3orange!16] (quantum) at (9.8,2.25)
 {\textbf{Quantum Execution Path}\\legacy routing notebooks, saved states,\\state-analysis and evaluator outputs};
-\node[widebox,fill=phase3orange!16] (eval) at (15.2,2.3)
+
+\node[widebox,fill=phase3orange!16] (eval) at (15.2,2.25)
 {\textbf{Evaluation Records}\\reward, success, latency, regret,\\route/service-quality metrics};
 
+% -------------------------------------------------------------------------
 % Policy and mediation layer
-\node[widebox,fill=phase4purple!14] (models) at (0.6,-1.1)
+% -------------------------------------------------------------------------
+\node[widebox,fill=phase4purple!14] (models) at (0.6,0.25)
 {\textbf{Clinical Model Registry}\\Oracle, ClinicalBaseline, FairAllocatorV1,\\ClinicalBanditUCB};
-\node[widebox,fill=phase4purple!14] (alloc) at (6.2,-1.1)
+
+\node[widebox,fill=phase4purple!14] (alloc) at (6.2,0.25)
 {\textbf{Allocation + Mediation}\\ClinicalDefaultResourceAllocator\\ClinicalEquitasMediator / EQUITAS request};
-\node[widebox,fill=phase4purple!14] (fair) at (11.8,-1.1)
+
+\node[widebox,fill=phase4purple!14] (fair) at (11.8,0.25)
 {\textbf{Fairness--Performance Synthesis}\\fairness states, model summaries,\\utility--fairness comparison};
 
+% -------------------------------------------------------------------------
 % Artifacts layer
-\node[smallbox,fill=phase4purple!8] (a1) at (-2.3,-4.1) {fixture inputs\\and run specs};
-\node[smallbox,fill=phase4purple!8] (a2) at (1.7,-4.1) {clinical states\\and decisions};
-\node[smallbox,fill=phase4purple!8] (a3) at (5.7,-4.1) {EQUITAS mediation\\and fairness states};
-\node[smallbox,fill=phase4purple!8] (a4) at (9.7,-4.1) {quantum saved-state\\analysis outputs};
-\node[smallbox,fill=phase4purple!8] (a5) at (13.7,-4.1) {figures, summaries,\\manifests, reports};
+% -------------------------------------------------------------------------
+\node[smallbox,fill=phase4purple!8] (a1) at (-2.3,-1.60) {fixture inputs\\and run specs};
+\node[smallbox,fill=phase4purple!8] (a2) at (1.7,-1.60) {clinical states\\and decisions};
+\node[smallbox,fill=phase4purple!8] (a3) at (5.7,-1.60) {EQUITAS mediation\\and fairness states};
+\node[smallbox,fill=phase4purple!8] (a4) at (9.7,-1.60) {quantum saved-state\\analysis outputs};
+\node[smallbox,fill=phase4purple!8] (a5) at (13.7,-1.60) {figures, summaries,\\manifests, reports};
 
+% -------------------------------------------------------------------------
 % Next semester extension markers
-\node[smallbox,fill=red!10] (n1) at (1.5,-6.1) {Next: executable COVID\\testing + pulse-ox scenarios};
-\node[smallbox,fill=red!10] (n2) at (6.0,-6.1) {Next: active iCMAB\\missingness-aware updates};
-\node[smallbox,fill=red!10] (n3) at (10.5,-6.1) {Next: fairness feedback\\into quantum routing};
-\node[smallbox,fill=red!10] (n4) at (15.0,-6.1) {Next: paper-ready\\validation hub};
+% -------------------------------------------------------------------------
+\node[smallbox,fill=red!10] (n1) at (1.5,-3.10) {Next: executable COVID\\testing + pulse-ox scenarios};
+\node[smallbox,fill=red!10] (n2) at (6.0,-3.10) {Next: active iCMAB\\missingness-aware updates};
+\node[smallbox,fill=red!10] (n3) at (10.5,-3.10) {Next: fairness feedback\\into quantum routing};
+\node[smallbox,fill=red!10] (n4) at (15.0,-3.10) {Next: paper-ready\\validation hub};
 
+% -------------------------------------------------------------------------
 % Main flows
+% -------------------------------------------------------------------------
 \draw[flow] (objective) -- (runspec);
 \draw[flow] (evidence) -- (runspec);
 \draw[flow] (criteria) -- (validation);
+
 \draw[flow] (entry) -- (runspec);
 \draw[flow] (runspec) -- (orchestration);
 \draw[flow] (orchestration) -- (validation);
 \draw[flow] (validation) -- (review);
+
 \draw[flow] (orchestration) -- (fixture);
 \draw[flow] (fixture) -- (clinenv);
 \draw[flow] (orchestration) -- (quantum);
 \draw[flow] (clinenv) -- (eval);
 \draw[flow] (quantum) -- (eval);
+
 \draw[flow] (models) -- (alloc);
 \draw[flow] (alloc) -- (fair);
 \draw[flow] (eval) -- (fair);
+
+% -------------------------------------------------------------------------
+% Shorter trace flows
+% -------------------------------------------------------------------------
 \draw[trace] (clinenv) -- (models);
 \draw[trace] (alloc) -- (clinenv);
 \draw[trace] (fair) -- (validation);
 \draw[trace] (fair) -- (review);
+
 \draw[trace] (fixture) -- (a1);
 \draw[trace] (clinenv) -- (a2);
 \draw[trace] (alloc) -- (a3);
 \draw[trace] (quantum) -- (a4);
 \draw[trace] (fair) -- (a5);
 \draw[trace] (a5) -- (review);
-\draw[trace] (n1) -- (fixture);
+
+% Bottom extension arrows shortened by routing to closest artifact/policy anchors
+\draw[trace] (n1) -- (a1);
 \draw[trace] (n2) -- (models);
-\draw[trace] (n3) -- (quantum);
+\draw[trace] (n3) -- (a4);
 \draw[trace] (n4) -- (a5);
 
 \end{tikzpicture}
