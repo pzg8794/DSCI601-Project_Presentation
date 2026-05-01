@@ -1,0 +1,110 @@
+% Approach slides derived from DSCI601-Project_Proposal/approach_report/approach-writeup.tex.
+% Keep this section aligned with the original approach report.
+
+\begin{frame}{Approach Overview}
+\begin{block}{Core approach from the approach report}
+This project treats \textbf{clinical resource allocation} and \textbf{quantum-network routing} as structurally comparable routing problems. Both fail when a policy must allocate scarce resources while key context is missing, noisy, delayed, or excluded.
+\end{block}
+
+\vspace{0.4em}
+
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\textbf{Clinical routing}
+\begin{itemize}
+    \item routes tests, retesting, and escalation follow-ups
+    \item operates under incomplete or group-unequal patient context
+    \item fairness risk appears as false-negative, delayed-care, or access gaps
+\end{itemize}
+\end{column}
+
+\begin{column}{0.48\textwidth}
+\textbf{Quantum routing}
+\begin{itemize}
+    \item routes entanglement and scarce qubit/link resources
+    \item operates under noisy, stale, or partial network context
+    \item fairness risk appears as service-quality gaps across flows
+\end{itemize}
+\end{column}
+\end{columns}
+
+\vspace{0.45em}
+\begin{block}{Unifying claim}
+The harmed groups or flows are often the ones whose context is missing, misrepresented, or not used correctly by the routing policy.
+\end{block}
+\end{frame}
+
+\begin{frame}{Approach: Four-Phase Evaluation Model}
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=0.8cm,
+  phase/.style={draw, rounded corners, align=center, minimum width=3.0cm, minimum height=0.95cm, font=\small\bfseries},
+  detail/.style={draw, rounded corners, align=center, minimum width=3.0cm, minimum height=0.75cm, font=\scriptsize, fill=white},
+  arr/.style={-{Stealth}, thick}
+]
+
+\node[phase, fill=phase1blue!20] (p1) {Phase 1\\Environment};
+\node[phase, fill=phase2green!20, right=0.75cm of p1] (p2) {Phase 2\\Context Observation};
+\node[phase, fill=phase3orange!20, right=0.75cm of p2] (p3) {Phase 3\\Routing Decision};
+\node[phase, fill=phase4purple!20, right=0.75cm of p3] (p4) {Phase 4\\Evaluation + Mitigation};
+
+\node[detail, below=0.35cm of p1] (d1) {clinical simulation\\quantum routing testbed};
+\node[detail, below=0.35cm of p2] (d2) {missing, noisy, delayed,\\or group-unequal context};
+\node[detail, below=0.35cm of p3] (d3) {MAB / CMAB / iCMAB\\select one routing action};
+\node[detail, below=0.35cm of p4] (d4) {utility, regret, latency,\\fairness gaps, artifacts};
+
+\draw[arr] (p1) -- (p2);
+\draw[arr] (p2) -- (p3);
+\draw[arr] (p3) -- (p4);
+\draw[arr, dashed] (d4.south) to[bend right=28]
+node[below, font=\scriptsize]{mitigation and reporting feedback} (d3.south);
+\end{tikzpicture}
+}
+
+\vspace{0.55em}
+
+\begin{block}{Why Phase 2 matters most}
+The approach report identifies \textbf{Context Observation} as the root-cause phase: if context is missing or unreliable before the policy acts, routing disparities can compound even when the policy looks good on average.
+\end{block}
+\end{frame}
+
+\begin{frame}{Approach: Why MAB, CMAB, and iCMAB}
+\small
+\begin{tabular}{p{0.20\textwidth}p{0.29\textwidth}p{0.39\textwidth}}
+\toprule
+\textbf{Policy level} & \textbf{What it sees} & \textbf{What it tests} \\
+\midrule
+\mab & action history only & What happens when the routing policy ignores context entirely. \\
+\cmab & observed context & Whether available context improves utility and fairness, even when some context is incomplete or noisy. \\
+\icmab & observed context plus informative or recovered context & Whether actively recovering or weighting missing context reduces disparity beyond standard contextual routing. \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.7em}
+
+\begin{block}{Design rationale}
+The policy spectrum directly tests the central research question: \textbf{how much routing harm is caused by missing context, and how much requires additional fairness mitigation?}
+\end{block}
+\end{frame}
+
+\begin{frame}{Approach: Implementation and Evaluation Plan}
+\small
+\begin{tabular}{p{0.25\textwidth}p{0.34\textwidth}p{0.31\textwidth}}
+\toprule
+\textbf{Approach element} & \textbf{Implementation} & \textbf{Evaluation signal} \\
+\midrule
+Clinical testbed & simulation-first resource allocation with missing/noisy/group-unequal context & false-negative gaps, delayed-escalation gaps, allocation efficiency \\
+Quantum testbed & existing quantum-routing environment with scarce links, qubits, and probabilistic success & success rate, latency, regret, service-equity gaps \\
+Shared policy interface & MAB, CMAB, and iCMAB policies run across comparable decision records & utility--fairness tradeoff across context levels \\
+Per-step logging & chosen action, observed feedback, group/flow state, fairness state, artifacts & when disparities emerge, persist, or reduce under mitigation \\
+Mitigation layer & fairness-aware adjustment, EQUITAS-style mediation, or missingness-aware policy update & whether fairness evidence changes future routing decisions \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6em}
+
+\begin{block}{Main point}
+The approach is not a late pivot. It is the original approach: a shared clinical--quantum bandit framework for testing whether better context leads to fairer and better routing.
+\end{block}
+\end{frame}
