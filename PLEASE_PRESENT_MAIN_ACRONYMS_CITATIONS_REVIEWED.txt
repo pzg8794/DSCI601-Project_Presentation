@@ -1,0 +1,1 @@
+Use main_acronyms_citations_reviewed.tex as the presentation entry point. It has the acronym and citation footers.
