@@ -1,0 +1,114 @@
+\begin{tikzpicture}[
+font=\sffamily,
+>=Latex,
+layerband/.style={rectangle,rounded corners,inner sep=10pt,line width=1.1pt,draw=black!35},
+box/.style={rectangle,draw=black,rounded corners,minimum height=1.15cm,text width=3.9cm,align=center,fill=gray!8,line width=1.0pt,font=\sffamily\small},
+widebox/.style={rectangle,draw=black,rounded corners,minimum height=1.25cm,text width=5.1cm,align=center,fill=gray!8,line width=1.0pt,font=\sffamily\small},
+smallbox/.style={rectangle,draw=black,rounded corners,minimum height=0.9cm,text width=3.2cm,align=center,fill=gray!6,line width=0.9pt,font=\sffamily\scriptsize},
+flow/.style={->,line width=0.85pt},
+trace/.style={->,dashed,line width=0.70pt},
+lab/.style={font=\sffamily\scriptsize,align=center}]
+
+% Top research context
+\node[widebox,fill=phase1blue!16] (objective) at (0,8.2)
+{\textbf{Research Objective}\\fair routing under missing context\\clinical + quantum SDSs};
+\node[widebox,fill=phase1blue!16] (evidence) at (5.8,8.2)
+{\textbf{Evidence + Data Context}\\COVID clinical foundation, synthetic fixture,\\quantum saved states and notebooks};
+\node[widebox,fill=phase1blue!16] (criteria) at (11.6,8.2)
+{\textbf{Fairness Criteria}\\group/site/cohort gaps, flow service equity,\\utility--fairness tradeoffs};
+
+% Control layer
+\node[box,fill=phase2green!16] (entry) at (-2.2,5.5)
+{\textbf{Entry Points}\\GitHub, CLI, notebooks,\\Overleaf/report artifacts};
+\node[box,fill=phase2green!16] (runspec) at (2.2,5.5)
+{\textbf{RunSpec + Control Policy}\\seeds, models, thresholds,\\testbed and provenance};
+\node[box,fill=phase2green!16] (orchestration) at (6.6,5.5)
+{\textbf{Orchestration}\\clinical evaluator / runner,\\quantum evaluator path};
+\node[box,fill=phase2green!16] (validation) at (11.0,5.5)
+{\textbf{Validation Gates}\\unit tests, smoke checks,\\merge-check evidence};
+\node[box,fill=phase2green!16] (review) at (15.4,5.5)
+{\textbf{Review Decision}\\accept, revise, or reject\\based on executable artifacts};
+
+% Execution layer split
+\node[widebox,fill=phase3orange!16] (fixture) at (-1.0,2.3)
+{\textbf{Clinical Fixture Pipeline}\\SyntheticClinicalFixturePipeline\\non-PHI records and scenario metadata};
+\node[widebox,fill=phase3orange!16] (clinenv) at (4.4,2.3)
+{\textbf{Clinical Execution Path}\\ClinicalEnvironment $\rightarrow$ ClinicalExperimentRunner\\case iteration, model decisions, allocation};
+\node[widebox,fill=phase3orange!16] (quantum) at (9.8,2.3)
+{\textbf{Quantum Execution Path}\\legacy routing notebooks, saved states,\\state-analysis and evaluator outputs};
+\node[widebox,fill=phase3orange!16] (eval) at (15.2,2.3)
+{\textbf{Evaluation Records}\\reward, success, latency, regret,\\route/service-quality metrics};
+
+% Policy and mediation layer
+\node[widebox,fill=phase4purple!14] (models) at (0.6,-1.1)
+{\textbf{Clinical Model Registry}\\Oracle, ClinicalBaseline, FairAllocatorV1,\\ClinicalBanditUCB};
+\node[widebox,fill=phase4purple!14] (alloc) at (6.2,-1.1)
+{\textbf{Allocation + Mediation}\\ClinicalDefaultResourceAllocator\\ClinicalEquitasMediator / EQUITAS request};
+\node[widebox,fill=phase4purple!14] (fair) at (11.8,-1.1)
+{\textbf{Fairness--Performance Synthesis}\\fairness states, model summaries,\\utility--fairness comparison};
+
+% Artifacts layer
+\node[smallbox,fill=phase4purple!8] (a1) at (-2.3,-4.1) {fixture inputs\\and run specs};
+\node[smallbox,fill=phase4purple!8] (a2) at (1.7,-4.1) {clinical states\\and decisions};
+\node[smallbox,fill=phase4purple!8] (a3) at (5.7,-4.1) {EQUITAS mediation\\and fairness states};
+\node[smallbox,fill=phase4purple!8] (a4) at (9.7,-4.1) {quantum saved-state\\analysis outputs};
+\node[smallbox,fill=phase4purple!8] (a5) at (13.7,-4.1) {figures, summaries,\\manifests, reports};
+
+% Next semester extension markers
+\node[smallbox,fill=red!10] (n1) at (1.5,-6.1) {Next: executable COVID\\testing + pulse-ox scenarios};
+\node[smallbox,fill=red!10] (n2) at (6.0,-6.1) {Next: active iCMAB\\missingness-aware updates};
+\node[smallbox,fill=red!10] (n3) at (10.5,-6.1) {Next: fairness feedback\\into quantum routing};
+\node[smallbox,fill=red!10] (n4) at (15.0,-6.1) {Next: paper-ready\\validation hub};
+
+% Main flows
+\draw[flow] (objective) -- (runspec);
+\draw[flow] (evidence) -- (runspec);
+\draw[flow] (criteria) -- (validation);
+\draw[flow] (entry) -- (runspec);
+\draw[flow] (runspec) -- (orchestration);
+\draw[flow] (orchestration) -- (validation);
+\draw[flow] (validation) -- (review);
+\draw[flow] (orchestration) -- (fixture);
+\draw[flow] (fixture) -- (clinenv);
+\draw[flow] (orchestration) -- (quantum);
+\draw[flow] (clinenv) -- (eval);
+\draw[flow] (quantum) -- (eval);
+\draw[flow] (models) -- (alloc);
+\draw[flow] (alloc) -- (fair);
+\draw[flow] (eval) -- (fair);
+\draw[trace] (clinenv) -- (models);
+\draw[trace] (alloc) -- (clinenv);
+\draw[trace] (fair) -- (validation);
+\draw[trace] (fair) -- (review);
+
+% Artifact traces
+\draw[trace] (fixture) -- (a1);
+\draw[trace] (clinenv) -- (a2);
+\draw[trace] (alloc) -- (a3);
+\draw[trace] (quantum) -- (a4);
+\draw[trace] (fair) -- (a5);
+\draw[trace] (a5) -- (review);
+\draw[trace] (n1) -- (fixture);
+\draw[trace] (n2) -- (models);
+\draw[trace] (n3) -- (quantum);
+\draw[trace] (n4) -- (a5);
+
+% Layer bands
+\begin{scope}[on background layer]
+\node[layerband,fill=phase1blue!7,fit=(objective)(criteria)] {};
+\node[layerband,fill=phase2green!7,fit=(entry)(review)] {};
+\node[layerband,fill=phase3orange!8,fit=(fixture)(eval)] {};
+\node[layerband,fill=phase4purple!10,fit=(models)(fair)] {};
+\node[layerband,fill=phase4purple!5,fit=(a1)(a5)] {};
+\node[layerband,fill=red!4,fit=(n1)(n4)] {};
+\end{scope}
+
+% Layer labels
+\node[lab,text=phase1blue!80!black] at (5.8,9.35) {High-level research context};
+\node[lab,text=phase2green!60!black] at (6.6,6.65) {Control and validation layer};
+\node[lab,text=phase3orange!75!black] at (7.0,3.45) {Execution layer: clinical and quantum paths};
+\node[lab,text=phase4purple!75!black] at (6.2,0.05) {Policy, allocation, mediation, and fairness--performance synthesis};
+\node[lab,text=phase4purple!75!black] at (5.7,-3.05) {Artifacts layer};
+\node[lab,text=red!70!black] at (8.25,-5.25) {Next-semester extension points};
+
+\end{tikzpicture}
