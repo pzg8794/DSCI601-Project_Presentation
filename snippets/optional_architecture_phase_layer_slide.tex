@@ -1,0 +1,38 @@
+% Optional slide: use if there is time after the architecture overview.
+% Purpose: explain how the architecture layers line up with the four-phase domain model.
+
+\begin{frame}{Architecture Layers as Domain Phases}
+\small
+
+\begin{block}{How to read the architecture}
+The architecture has five implementation layers, but it follows the same four-phase domain logic: environment, context, decision, and evaluation.
+\end{block}
+
+\vspace{0.25em}
+
+\begin{tabular}{p{0.20\textwidth}p{0.27\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Domain phase} & \textbf{Architecture layer} & \textbf{What to point out} \\
+\midrule
+\rowcolor{phase1blue!12}
+Phase 1: Environment & Layer 1 + Layer 3 & Research context defines the problem; execution turns clinical and quantum testbeds into runnable cases. \\
+
+\rowcolor{phase2green!12}
+Phase 2: Context & Layer 2 + Layer 3 & Control and validation preserve run settings, context quality, missingness, and provenance. \\
+
+\rowcolor{phase3orange!12}
+Phase 3: Decision & Layer 4 & Models, allocators, and EQUITAS mediation choose or adjust routing actions under partial feedback. \\
+
+\rowcolor{phase4purple!12}
+Phase 4: Evaluation & Layer 5 & Fairness states, summaries, manifests, and validation-hub artifacts turn runs into evidence. \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.35em}
+
+\begin{block}{Quick speaking point}
+If time is short, focus on \textbf{Phase 4 / Layer 5}: it shows why the project is reproducible, because claims link back to states, artifacts, manifests, and validation evidence.
+\end{block}
+
+\slidefoot{Acronyms: EQUITAS = fairness audit and mitigation boundary. Sources: DSCI601 architecture report, approach report, workspace fairness workflow, artifact writer, and validation hub.}
+\end{frame}
