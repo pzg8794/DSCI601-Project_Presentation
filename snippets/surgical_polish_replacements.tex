@@ -1,0 +1,142 @@
+% Surgical polish replacements for the final presentation.
+% These keep the current structure but shorten wording and update the demo to the
+% new Fairness Validation Hub evidence flow.
+
+% ---------------------------------------------------------------------------
+% Replace the existing Project Overview slide text blocks with this shorter version.
+\begin{frame}{Project Overview}
+\begin{block}{Project focus}
+This project studies \textbf{fairness-aware routing under missing context} in two settings: \textbf{clinical decision support} and \textbf{quantum-network routing}.
+\end{block}
+\begin{block}{Shared problem}
+Both are \textbf{sequential decision systems}: they allocate scarce resources, observe partial feedback, and update from incomplete evidence.
+\end{block}
+\textbf{Goals}
+\begin{itemize}
+    \item Compare \mab, \cmab, and \icmab{} strategies.
+    \item Measure performance and fairness together.
+    \item Show how missing context can repeat allocation harm.
+    \item Produce reproducible, reportable artifacts.
+\end{itemize}
+\slidefoot{Acronyms: MAB = multi-armed bandit; CMAB = contextual multi-armed bandit; iCMAB = informative contextual multi-armed bandit; SDS = sequential decision system. Sources: Auer et al. (2002); Li et al. (2010); Lattimore and Szepesvari (2020); DSCI601 Project Proposal.}
+\end{frame}
+
+% ---------------------------------------------------------------------------
+% Replace the existing Why This Project Matters slide with this shorter version.
+\begin{frame}{Why This Project Matters}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\begin{block}{Clinical impact}
+Routing affects patient access and outcomes.
+\end{block}
+\begin{itemize}
+    \item Who receives a test?
+    \item Who gets retested or escalated?
+    \item Whose risk is missed?
+\end{itemize}
+\alert{Average accuracy can hide delayed care for a vulnerable group.}
+\end{column}
+
+\begin{column}{0.48\textwidth}
+\begin{block}{Quantum-network impact}
+Routing affects service quality under noise.
+\end{block}
+\begin{itemize}
+    \item Which path is selected?
+    \item Which flows receive scarce resources?
+    \item Who gets repeated failure or latency?
+\end{itemize}
+\alert{High throughput can hide worse service for some flows.}
+\end{column}
+\end{columns}
+
+\vspace{0.35em}
+\begin{block}{Core point}
+Fairness-aware routing asks whether decisions are good \textbf{for everyone affected}, not only good on average.
+\end{block}
+\slidefoot{Clinical sources: Sjoding et al. (2020); Fawzy et al. (2022). Quantum-network sources: Wehner et al. (2018); Pant et al. (2019); DSCI601 quantum-routing materials.}
+\end{frame}
+
+% ---------------------------------------------------------------------------
+% Replacement current-status block for Architecture Layer 2.
+\begin{block}{Current status}
+This layer supports shared \texttt{RunSpec}-based runs, datalake persistence, report/export generation, and by-model summaries. Remaining work: link each final claim to its run spec, states, artifacts, figures, and report evidence.
+\end{block}
+
+% ---------------------------------------------------------------------------
+% Replacement current-status block for Architecture Layer 3.
+\begin{block}{Current execution status}
+The clinical path runs through evaluator, runner, decisions, outcomes, and fairness artifacts. The quantum path is preserved through the existing routing workflow and sidecar. Remaining work: scale runs, connect artifacts to the hub, and finalize COVID/pulse-ox validation scenarios.
+\end{block}
+
+% ---------------------------------------------------------------------------
+% Replacement current-status block for Architecture Layer 4.
+\begin{block}{Current status}
+Each clinical case stores the model decision, EQUITAS mediation, allocation decision, and outcome. That lets us trace harm back to action, mediation mode, priority score, allocation label, and feedback.
+\end{block}
+
+% ---------------------------------------------------------------------------
+% Replacement current-status block for Architecture Layer 5.
+\begin{block}{Current status}
+\texttt{FairnessWorkflow} and \texttt{FairnessArtifactWriter} already persist summaries, records, outcomes, manifests, analysis payloads, execution-mode files, and by-model summaries. Remaining work: organize them into the final validation hub.
+\end{block}
+
+% ---------------------------------------------------------------------------
+% Replace the existing Working Demo Plan slide with this hub-focused version.
+\begin{frame}{Working Demo: Fairness Validation Hub}
+\small
+
+\begin{block}{Demo objective}
+Show the working evidence hub: generated clinical and quantum artifacts are checked against manifest-backed fairness claims.
+\end{block}
+
+\vspace{0.2em}
+
+\begin{enumerate}
+    \item Open \texttt{Fairness\_Validation\_Hub.ipynb}.
+    \item Load a generated \texttt{report\_manifest.json}.
+    \item Show claim status: \texttt{validated}, \texttt{partial}, \texttt{missing}, or \texttt{not\_applicable}.
+    \item Open linked evidence: summary, outcomes, model summary, lineage, or manifest.
+    \item Show the expanded evidence package: clinical report artifacts plus quantum sidecar/report artifacts.
+\end{enumerate}
+
+\vspace{0.2em}
+
+\begin{block}{What the hub validates}
+Artifact generation, fairness datasets, model-stratified evidence, EQUITAS fields, artifact lineage, and planned paper evidence views.
+\end{block}
+
+\vspace{0.1em}
+
+\begin{block}{Demo takeaway}
+The demo shows traceability, not a live experiment run: claims connect to manifests, datasets, figures, and fairness artifacts. Full cross-testbed validation remains next-semester work.
+\end{block}
+
+\slidefoot{Acronyms: EQUITAS = fairness audit and mitigation boundary. Sources: DSCI601 workspace \texttt{Fairness\_Validation\_Hub.ipynb}, \texttt{run\_fairness\_validation\_hub.py}, and \texttt{run\_fairness\_hub\_evidence.py}.}
+\end{frame}
+
+% ---------------------------------------------------------------------------
+% Replace the Next Semester slide with this shorter version.
+\begin{frame}{Next Semester: Architecture Completion}
+\small
+\begin{block}{Current status}
+The core architecture is implemented and smoke-tested. Clinical execution, quantum sidecar integration, fairness workflow, artifact persistence, and preliminary validation-hub reporting are in place.
+\end{block}
+
+\vspace{-0.05cm}
+
+\begin{block}{Not complete yet}
+We have a working framework and preliminary artifacts, not the full cross-testbed experiment battery or final paper-ready validation hub.
+\end{block}
+
+\vspace{0.1cm}
+
+\begin{enumerate}\small
+    \item \textbf{Cross-testbed suite:} run clinical and quantum settings under matched missing-context and fairness conditions.
+    \item \textbf{Clinical scale-up:} expand COVID testing and pulse-ox scenarios across seeds, cohorts, missingness, and policies.
+    \item \textbf{Deeper fairness reporting:} add disparity, uncertainty, effect size, and cross-setting comparisons.
+    \item \textbf{Feedback loop:} use EQUITAS evidence to update future routing decisions.
+    \item \textbf{Validation hub:} link every final claim to specs, states, figures, manifests, evidence, and reproducibility metadata.
+\end{enumerate}
+\slidefoot{Acronyms: COVID = coronavirus disease 2019; EQUITAS = fairness audit and mitigation boundary. Sources: DSCI601 workspace fairness status, validation-hub artifacts, clinical reporting artifacts, and legacy quantum sidecar status.}
+\end{frame}
