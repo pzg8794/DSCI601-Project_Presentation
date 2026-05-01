@@ -123,51 +123,74 @@ Fairness-aware routing asks whether the system is making good decisions
 
 \begin{frame}{Updated Domain Model}
 \centering
-\resizebox{0.90\textwidth}{!}{%
+\resizebox{0.96\textwidth}{!}{%
 \begin{tikzpicture}[
-  node distance=0.7cm,
-  entity/.style={draw, rounded corners, align=center, fill=softgray, minimum width=2.5cm, minimum height=0.8cm},
-  risk/.style={draw, rounded corners, align=center, fill=softred!18, minimum width=2.5cm, minimum height=0.8cm},
-  decision/.style={draw, rounded corners, align=center, fill=ritorange!18, minimum width=2.5cm, minimum height=0.8cm},
-  output/.style={draw, rounded corners, align=center, fill=softgreen!18, minimum width=2.5cm, minimum height=0.8cm},
-  arr/.style={-{Stealth}, thick}
+  font=\scriptsize,
+  phasebox/.style={draw, rounded corners=4pt, align=center,
+              text width=1.72cm, minimum height=0.72cm,
+              inner sep=3pt, text=white, font=\scriptsize\bfseries},
+  phase1/.style={phasebox, fill=phase1blue},
+  phase2/.style={phasebox, fill=phase2green},
+  phase3/.style={phasebox, fill=phase3orange},
+  phase4/.style={phasebox, fill=phase4purple},
+  arr/.style={-Stealth, thick, gray!65},
+  darr/.style={-Stealth, thick, dashed, gray!55},
+  lbl/.style={font=\scriptsize\bfseries, align=center}
 ]
-\node[entity] (env) {Environment\\clinical or quantum};
-\node[risk, right=1.0cm of env] (ctx) {Observed Context\\missing / delayed / noisy};
-\node[decision, right=1.0cm of ctx] (pol) {Policy Family\\MAB / CMAB / iCMAB};
-\node[entity, right=1.0cm of pol] (act) {Routing Action\\test, triage, path};
-\node[output, below=1.0cm of act] (reward) {Reward + Cost\\partial feedback};
-\node[output, left=1.0cm of reward] (fair) {Fairness State\\group or flow gaps};
-\node[entity, left=1.0cm of fair] (report) {Reporting Artifact\\manifest + figures};
+\fill[phase1blue!12, rounded corners=6pt]   (-0.65,-2.10) rectangle (4.10,2.15);
+\fill[phase2green!12, rounded corners=6pt]  (4.30,-2.10) rectangle (7.40,2.15);
+\fill[phase3orange!12, rounded corners=6pt] (7.65,-2.10) rectangle (11.90,2.15);
+\fill[phase4purple!12, rounded corners=6pt] (12.15,-2.10) rectangle (18.25,2.15);
 
-\draw[arr] (env) -- (ctx);
-\draw[arr] (ctx) -- (pol);
-\draw[arr] (pol) -- (act);
-\draw[arr] (act) -- (reward);
-\draw[arr] (reward) -- (fair);
-\draw[arr] (fair) -- (report);
-\draw[arr,dashed] (fair) to[bend right=35] (pol);
-\end{tikzpicture}}
+\node[phase1] (clin) at (0.55,0.62) {Clinical\\Resource Routing};
+\node[phase1] (quant) at (0.55,-0.62) {Quantum\\Network Routing};
+\node[phase1, double, double distance=1.4pt] (env) at (3.00,0.00) {Environment /\\Testbed};
 
-\vspace{0.55em}
+\node[phase2] (deg) at (5.85,0.72) {Missing / Noisy /\\Delayed Context};
+\node[phase2] (ctx) at (5.85,-0.52) {Observed\\Context};
+
+\node[phase3] (pol) at (8.70,0.00) {Policy / Model\\MAB--CMAB--iCMAB};
+\node[phase3] (act) at (10.80,0.00) {Routing\\Action};
+
+\node[phase4] (fb)  at (13.05,-0.86) {Partial Feedback\\success / reward};
+\node[phase4] (log) at (15.05,0.60) {Utility + Fairness\\Logger};
+\node[phase4] (mit) at (17.15,-0.86) {Mitigation +\\Artifacts};
+
+\draw[arr] (clin)--(env);
+\draw[arr] (quant)--(env);
+\draw[arr] (env)--(ctx);
+\draw[arr] (deg)--(ctx);
+\draw[arr] (ctx)--(pol);
+\draw[arr] (pol)--(act);
+\draw[arr] (act)--(fb);
+\draw[arr] (act)--(log);
+\draw[arr] (fb)--(log);
+\draw[arr] (log)--(mit);
+\draw[darr] (mit.south) to[bend right=18] (pol.south);
+
+\node[lbl, text=phase1blue]   at (1.75,-1.82) {\textbf{Phase 1}\\Environment};
+\node[lbl, text=phase2green]  at (5.85,-1.82) {\textbf{Phase 2}\\Context};
+\node[lbl, text=phase3orange] at (9.78,-1.82) {\textbf{Phase 3}\\Decision};
+\node[lbl, text=phase4purple] at (15.20,-1.82) {\textbf{Phase 4}\\Evaluation};
+\end{tikzpicture}%
+}
+
+\vspace{0.45em}
 \scriptsize
-\begin{tabular}{p{0.24\textwidth}p{0.58\textwidth}p{0.12\textwidth}}
+\begin{tabular}{p{0.22\textwidth}p{0.65\textwidth}}
 \toprule
-\textbf{Relationship} & \textbf{Meaning} & \textbf{Cardinality} \\
+\textbf{Domain element} & \textbf{Current implementation mapping} \\
 \midrule
-Environment $\rightarrow$ Context & each run produces observed context snapshots & 1 to 1..* \\
-Context $\rightarrow$ Policy & one observed state is used for the current decision & 1 to 1 \\
-Policy $\rightarrow$ Action & the policy selects exactly one routing action & 1 to 1 \\
-Action $\rightarrow$ Outcome & only the chosen action creates observed feedback & 1 to 1 \\
-Outcome $\rightarrow$ Fairness & outcomes update fairness metrics over groups or routes & 1 to 1..* \\
-Fairness $\rightarrow$ Report & validation stores summaries, figures, and manifests & 1 to 0..* \\
+Environment / testbed & \texttt{ClinicalEnvironment} plus preserved quantum-routing testbed path \\
+Context observation & site/cohort/service context, missing-context flags, stale/noisy route information \\
+Policy / action & \texttt{ClinicalModelRegistry}, \texttt{FairAllocatorV1}, \texttt{ClinicalBanditUCB}, MAB/CMAB/iCMAB routing policies \\
+Evaluation / mitigation & partial feedback, \texttt{ClinicalEquitasMediator}, fairness states, summaries, manifests, figures \\
 \bottomrule
 \end{tabular}
 
-\vspace{0.35em}
-\begin{itemize}
-  \item The same domain model supports both environment families.
-  \item The unchosen actions remain \textbf{counterfactual}; only the chosen action produces observed feedback.
+\vspace{0.25em}
+\begin{itemize}\scriptsize
+  \item The model captures the shared SDS loop: only the chosen action creates observed feedback; unchosen actions remain counterfactual.
   \item Fairness risk appears when context quality is systematically worse for one group, site, cohort, or route class.
 \end{itemize}
 \end{frame}
