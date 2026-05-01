@@ -1,0 +1,35 @@
+% Polished replacement for the Working Demo Plan slide.
+% Use this after the GitHub code-review break. The demo stays focused on the
+% Fairness Validation Hub and avoids live experiment runs.
+
+\begin{frame}{Working Demo: Fairness Validation Hub}
+\small
+
+\begin{block}{Demo objective}
+Show the working evidence hub: generated clinical and quantum artifacts are checked against manifest-backed fairness claims.
+\end{block}
+
+\vspace{0.2em}
+
+\begin{enumerate}
+    \item Open \texttt{Fairness\_Validation\_Hub.ipynb}.
+    \item Load a generated \texttt{report\_manifest.json}.
+    \item Show claim status: \texttt{validated}, \texttt{partial}, \texttt{missing}, or \texttt{not\_applicable}.
+    \item Open linked evidence: fairness summary, outcomes, model summary, figure lineage, or manifest.
+    \item Show the expanded evidence package: clinical report artifacts plus quantum sidecar/report artifacts.
+\end{enumerate}
+
+\vspace{0.2em}
+
+\begin{block}{What the hub validates}
+Artifact generation, fairness reporting datasets, model-stratified evidence, EQUITAS fields, artifact lineage, and planned paper evidence views.
+\end{block}
+
+\vspace{0.1em}
+
+\begin{block}{Demo takeaway}
+The demo shows traceability, not a live experiment run: claims connect to manifests, datasets, figures, and fairness artifacts. Full cross-testbed validation remains next-semester work.
+\end{block}
+
+\slidefoot{Acronyms: EQUITAS = fairness audit and mitigation boundary. Sources: DSCI601 workspace \texttt{Fairness\_Validation\_Hub.ipynb}, \texttt{run\_fairness\_validation\_hub.py}, and \texttt{run\_fairness\_hub\_evidence.py}.}
+\end{frame}
