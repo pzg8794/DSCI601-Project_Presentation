@@ -1,0 +1,50 @@
+% Architecture overview slides using the updated implementation-aware diagram.
+% Requires the main Beamer file to load: tikz, graphicx, booktabs.
+% Required TikZ libraries: arrows.meta, positioning, fit, calc, shapes.geometric, backgrounds.
+
+\begin{frame}{Updated Architecture Overview}
+\centering
+\vspace{-0.35em}
+\resizebox{0.98\textwidth}{!}{%
+\input{../../architecture_report/architecture_diagram.tex}
+}
+\vspace{-0.15em}
+
+\scriptsize
+\textbf{Read left to right:} research context and evidence feed controlled runs; clinical and quantum execution paths produce evaluation records; allocation, EQUITAS mediation, and fairness--performance synthesis generate reviewable artifacts.
+\end{frame}
+
+\begin{frame}{What Changed in the Current Architecture}
+\small
+\begin{tabular}{p{0.24\textwidth}p{0.34\textwidth}p{0.32\textwidth}}
+\toprule
+\textbf{Region} & \textbf{Current implementation} & \textbf{Why it matters} \\
+\midrule
+Clinical execution path & \texttt{ClinicalEnvironment}, \texttt{ClinicalExperimentRunner}, \texttt{ClinicalExperimentEvaluator} & Clinical work is no longer just a motivation; it has an executable runner/evaluator path. \\
+Policy/model path & \texttt{ClinicalModelRegistry}: Oracle, ClinicalBaseline, FairAllocatorV1, ClinicalBanditUCB & The deck can discuss actual model families rather than generic boxes. \\
+Allocation + mediation & \texttt{ClinicalDefaultResourceAllocator} and \texttt{ClinicalEquitasMediator} & Fairness is connected to allocation decisions through mediation, not only post-hoc reporting. \\
+Quantum path & legacy quantum notebooks, saved states, state-analysis outputs & Existing quantum routing work remains preserved and feeds the same artifact/evaluation surface. \\
+Artifacts layer & fairness states, summaries, figures, manifests, reports & The architecture produces evidence that can be reviewed, reproduced, and cited in the final report. \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}{Next-Semester Extension Points in the Architecture}
+\small
+\begin{tabular}{p{0.26\textwidth}p{0.34\textwidth}p{0.30\textwidth}}
+\toprule
+\textbf{Extension point} & \textbf{What exists now} & \textbf{Next step} \\
+\midrule
+Clinical scenarios & synthetic clinical fixture and COVID evidence artifacts & convert COVID testing and pulse-ox cases into executable environments \\
+Bandit learning & ClinicalBanditUCB and fair allocation smoke path & implement active iCMAB missingness-aware updates \\
+EQUITAS loop & mediation requests and fairness states are produced & close the loop so fairness evidence updates future routing decisions \\
+Quantum routing & preserved legacy path and saved-state analysis & add active fairness-adjusted quantum routing policies \\
+Validation hub & reportable artifacts and summaries & build paper-ready claims-to-evidence reporting \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6em}
+\begin{block}{Main point}
+The architecture is now a shared clinical--quantum evaluation workflow: different environments, one fairness--performance reporting surface.
+\end{block}
+\end{frame}
