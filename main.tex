@@ -10,16 +10,17 @@
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{graphicx}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 
-\title[Fairness-Aware Routing]{Fairness-Aware Routing Under Missing Context}
-\subtitle{Clinical and Quantum Sequential Decision Systems with MAB, CMAB, and iCMAB Methods}
-\author[P. Z. Garcia Bautista]{Piter Z. Garcia Bautista\\Advisors: Daniel Krutz and Travis Desell}
+\title[Fairness-Aware Routing]{Fairness-Aware Routing in Quantum Networks \& Clinical Settings}
+\subtitle{via Multi-Armed, Contextual, and Informative Bandit Methods}
+\author[P. Z. Garcia]{Piter Z. Garcia\\Advisors: Daniel Krutz and Travis Desell}
 \institute[RIT]{Rochester Institute of Technology\\DSCI 601 -- Applied Data Science I}
-\date{Endterm Presentation}
+\date{Final Presentation}
 
 \definecolor{ritorange}{RGB}{247,105,2}
 \definecolor{deepblue}{RGB}{31,78,121}
@@ -41,44 +42,28 @@
 
 \begin{document}
 
-% -----------------------------------------------------------------------------
 \begin{frame}
   \titlepage
 \end{frame}
 
-% -----------------------------------------------------------------------------
 \begin{frame}{15-Minute Presentation Plan}
 \begin{enumerate}
-    \item Project overview: problem, goal, and contribution.
-    \item Updated domain model: clinical and quantum routing as one missing-context problem.
-    \item Updated architecture overview and four architecture layer slides.
-    \item GitHub code-review break: classes connected to the architecture.
-    \item Working demo plan and preliminary results.
-    \item Next-semester completion plan.
+    \item Project overview and why it matters.
+    \item Updated domain model for clinical and quantum routing.
+    \item Updated implementation-aware architecture overview.
+    \item Architecture changes and layer details.
+    \item GitHub code-review break tied to the architecture.
+    \item Demo plan, preliminary results, and next-semester completion.
 \end{enumerate}
-% \vspace{0.5em}
-% \begin{block}{Rubric alignment}
-% The deck prioritizes clear figures, background explanation, an updated domain model, layered architecture, code review, and a demo path.
-% \end{block}
 \end{frame}
 
-% -----------------------------------------------------------------------------
 \begin{frame}{Project Overview}
 \begin{block}{What this project is}
-This project studies \textbf{fairness-aware routing under missing context} in two environment families:
-\textbf{clinical decision support} and \textbf{quantum-network routing}.
+This project studies \textbf{fairness-aware routing under missing context} in two environment families: \textbf{clinical decision support} and \textbf{quantum-network routing}.
 \end{block}
-
-\vspace{0.5em}
-
 \begin{block}{Shared problem}
-Both domains are \textbf{sequential decision systems (SDSs)}:
-they allocate scarce resources under uncertainty, observe only partial feedback,
-and update future decisions from incomplete evidence.
+Both domains are \textbf{sequential decision systems}: they allocate scarce resources under uncertainty, observe only partial feedback, and update future decisions from incomplete evidence.
 \end{block}
-
-\vspace{0.5em}
-
 \textbf{Project goals}
 \begin{itemize}
     \item Compare \mab, \cmab, and \icmab{} strategies.
@@ -88,48 +73,31 @@ and update future decisions from incomplete evidence.
 \end{itemize}
 \end{frame}
 
-
 \begin{frame}{Why This Project Matters}
 \begin{columns}[T]
 \begin{column}{0.48\textwidth}
 \begin{block}{Clinical impact}
 Routing decisions affect real patient outcomes.
 \end{block}
-
 \begin{itemize}
     \item Who receives a diagnostic test?
     \item Who gets retested or escalated?
     \item Whose risk is missed because context is incomplete?
 \end{itemize}
-
-\vspace{0.4em}
-
-\alert{A policy can look accurate on average while still delaying access to critical resources/care for a vulnerable group.}
+\alert{A policy can look accurate on average while delaying care for a vulnerable group.}
 \end{column}
-
 \begin{column}{0.48\textwidth}
 \begin{block}{Quantum-network impact}
 Routing decisions affect service quality under noisy conditions.
 \end{block}
-
 \begin{itemize}
     \item Which path gets selected?
     \item Which flows receive scarce qubit or link resources?
     \item Which users experience repeated failure or latency?
 \end{itemize}
-
-\vspace{0.4em}
-
-\alert{A policy can maximize total throughput while still giving some flows consistently worse service.}
+\alert{A policy can maximize throughput while some flows receive worse service.}
 \end{column}
 \end{columns}
-
-\vspace{0.6em}
-
-\begin{block}{Core reason this matters}
-Fairness-aware routing asks whether the system is making good decisions
-\textbf{for everyone affected}, not only good decisions on average.
-\end{block}
 \end{frame}
 
 \begin{frame}{Updated Domain Model}
@@ -150,7 +118,6 @@ Fairness-aware routing asks whether the system is making good decisions
 \node[output, below=1.0cm of act] (reward) {Reward + Cost\\partial feedback};
 \node[output, left=1.0cm of reward] (fair) {Fairness State\\group or flow gaps};
 \node[entity, left=1.0cm of fair] (report) {Reporting Artifact\\manifest + figures};
-
 \draw[arr] (env) -- (ctx);
 \draw[arr] (ctx) -- (pol);
 \draw[arr] (pol) -- (act);
@@ -174,157 +141,15 @@ Outcome $\rightarrow$ Fairness & outcomes update fairness metrics over groups or
 Fairness $\rightarrow$ Report & validation stores summaries, figures, and manifests & 1 to 0..* \\
 \bottomrule
 \end{tabular}
-
-\vspace{0.35em}
-\begin{itemize}
-  \item The same domain model supports both environment families.
-  \item The unchosen actions remain \textbf{counterfactual}; only the chosen action produces observed feedback.
-  \item Fairness risk appears when context quality is systematically worse for one group, site, cohort, or route class.
-\end{itemize}
 \end{frame}
-
-\begin{frame}{Why the Domain Model Changed}
-\begin{columns}[T]
-\begin{column}{0.48\textwidth}
-\centering
-\textbf{Old domain view}
-
-\vspace{0.3em}
-\resizebox{\linewidth}{!}{%
-\begin{tikzpicture}[
-  node distance=0.42cm,
-  smallbox/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softgray},
-  bad/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softred!18},
-  good/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softgreen!18},
-  arr/.style={-{Stealth}, thick}
-]
-\node[smallbox] (env) {Environment};
-\node[bad, right=0.35cm of env] (ctx) {Context};
-\node[smallbox, right=0.35cm of ctx] (pol) {Policy};
-\node[smallbox, right=0.35cm of pol] (act) {Action};
-\node[good, below=0.55cm of act] (out) {Reward + Fairness};
-\node[smallbox, left=0.35cm of out] (rep) {Reporting};
-\node[bad, left=0.35cm of rep] (harm) {Disparity};
-
-\draw[arr] (env) -- (ctx);
-\draw[arr] (ctx) -- (pol);
-\draw[arr] (pol) -- (act);
-\draw[arr] (act) -- (out);
-\draw[arr] (out) -- (rep);
-\draw[arr] (rep) -- (harm);
-\draw[arr,dashed] (harm.west) to[bend right=35] (pol.south);
-\end{tikzpicture}}
-\vspace{0.35em}
-
-{\scriptsize Compact pipeline, but some concepts were merged together.}
-\end{column}
-
-\begin{column}{0.48\textwidth}
-\centering
-\textbf{Updated domain view}
-
-\vspace{0.3em}
-\resizebox{\linewidth}{!}{%
-\begin{tikzpicture}[
-  node distance=0.42cm,
-  smallbox/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softgray},
-  bad/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softred!18},
-  good/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=softgreen!18},
-  orangebox/.style={draw, rounded corners, align=center, minimum width=1.7cm, minimum height=0.55cm, fill=ritorange!18},
-  arr/.style={-{Stealth}, thick}
-]
-\node[smallbox] (env) {Environment};
-\node[bad, right=0.35cm of env] (ctx) {Observed Context};
-\node[orangebox, right=0.35cm of ctx] (pol) {Policy Family};
-\node[smallbox, right=0.35cm of pol] (act) {Routing Action};
-\node[good, below=0.55cm of act] (out) {Observed Outcome};
-\node[good, left=0.35cm of out] (fair) {Fairness State};
-\node[smallbox, left=0.35cm of fair] (rep) {Reporting Artifact};
-
-\draw[arr] (env) -- (ctx);
-\draw[arr] (ctx) -- (pol);
-\draw[arr] (pol) -- (act);
-\draw[arr] (act) -- (out);
-\draw[arr] (out) -- (fair);
-\draw[arr] (fair) -- (rep);
-\draw[arr,dashed] (fair.west) to[bend right=35] (pol.south);
-\end{tikzpicture}}
-\vspace{0.35em}
-
-{\scriptsize Clearer separation of decision, outcome, fairness audit, and reporting.}
-\end{column}
-\end{columns}
-
-\vspace{0.6em}
-\begin{block}{Why this matters}
-\begin{itemize}
-    \item The updated model separates \textbf{observed outcome} from \textbf{fairness state}, so fairness is treated as an audit layer rather than being hidden inside reward.
-    \item It makes the \textbf{bandit setting} clearer: only the chosen action is observed, while the other actions remain \textbf{counterfactual}.
-    \item It also makes the project more reproducible by showing that \textbf{reporting/validation artifacts} are explicit outputs of the framework.
-\end{itemize}
-\end{block}
-\end{frame}
-
-% % -----------------------------------------------------------------------------
-% \begin{frame}{Clinical Validation Added This Semester}
-% \begin{block}{New empirical foundation}
-% The COVID clinical evidence analysis validates two concrete missing-context failures that directly motivate this research.
-% \end{block}
-
-% \begin{columns}[T]
-% \begin{column}{0.48\textwidth}
-% \textbf{Case 1: Test allocation}
-% \begin{itemize}
-%     \item risk context existed but was not used well
-%     \item high-SVI, Hispanic, and Black communities were under-served
-%     \item fair CMAB routing reweights allocation by vulnerability
-% \end{itemize}
-% \end{column}
-% \begin{column}{0.48\textwidth}
-% \textbf{Case 2: Diagnostic bias}
-% \begin{itemize}
-%     \item pulse oximetry missed group-specific calibration context
-%     \item Black, Hispanic, and Asian patients experienced higher occult hypoxemia
-%     \item EQUITAS-style mediation can target the ambiguous decision zone
-% \end{itemize}
-% \end{column}
-% \end{columns}
-
-% \vspace{0.4em}
-% \small These cases show that context quality is not just metadata; it affects who receives resources and whose measurements can be trusted.
-% \end{frame}
-
-
-% -----------------------------------------------------------------------------
-% ---------------------------------------------------------------------------
-% Architecture slide 1:
-% Uses the canonical architecture diagram from:
-% architecture_report/architecture_diagram.tex
-%
-% Required preamble support:
-% \usepackage{tikz}
-% \usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric,backgrounds}
-% \usepackage{graphicx}
-%
-% Required colors if not already defined:
-% \definecolor{phase1blue}{RGB}{52,152,219}
-% \definecolor{phase2green}{RGB}{46,204,113}
-% \definecolor{phase3orange}{RGB}{230,126,34}
-% \definecolor{phase4purple}{RGB}{155,89,182}
-% ---------------------------------------------------------------------------
-
-% Architecture overview slides using the updated implementation-aware diagram.
-% Requires the main Beamer file to load: tikz, graphicx, booktabs.
-% Required TikZ libraries: arrows.meta, positioning, fit, calc, shapes.geometric, backgrounds.
 
 \begin{frame}{Updated Architecture Overview}
 \centering
 \vspace{-0.35em}
 \resizebox{0.98\textwidth}{!}{%
-\input{../../architecture_report/architecture_diagram.tex}
+\input{architecture_report/architecture_diagram.tex}
 }
 \vspace{-0.15em}
-
 \scriptsize
 \textbf{Read left to right:} research context and evidence feed controlled runs; clinical and quantum execution paths produce evaluation records; allocation, EQUITAS mediation, and fairness--performance synthesis generate reviewable artifacts.
 \end{frame}
@@ -335,296 +160,30 @@ Fairness $\rightarrow$ Report & validation stores summaries, figures, and manife
 \toprule
 \textbf{Region} & \textbf{Current implementation} & \textbf{Why it matters} \\
 \midrule
-Clinical execution path & \texttt{ClinicalEnvironment}, \texttt{ClinicalExperimentRunner}, \texttt{ClinicalExperimentEvaluator} & Clinical work is no longer just a motivation; it has an executable runner/evaluator path. \\
-Policy/model path & \texttt{ClinicalModelRegistry}: Oracle, ClinicalBaseline, FairAllocatorV1, ClinicalBanditUCB & The deck can discuss actual model families rather than generic boxes. \\
-Allocation + mediation & \texttt{ClinicalDefaultResourceAllocator} and \texttt{ClinicalEquitasMediator} & Fairness is connected to allocation decisions through mediation, not only post-hoc reporting. \\
-Quantum path & legacy quantum notebooks, saved states, state-analysis outputs & Existing quantum routing work remains preserved and feeds the same artifact/evaluation surface. \\
-Artifacts layer & fairness states, summaries, figures, manifests, reports & The architecture produces evidence that can be reviewed, reproduced, and cited in the final report. \\
+Clinical execution path & \texttt{ClinicalEnvironment}, \texttt{ClinicalExperimentRunner}, \texttt{ClinicalExperimentEvaluator} & Clinical work is executable through a runner/evaluator path. \\
+Policy/model path & \texttt{ClinicalModelRegistry}: Oracle, ClinicalBaseline, FairAllocatorV1, ClinicalBanditUCB & The deck can discuss actual model families rather than generic policy boxes. \\
+Allocation + mediation & \texttt{ClinicalDefaultResourceAllocator} and \texttt{ClinicalEquitasMediator} & Fairness connects to allocation decisions through mediation, not only post-hoc reporting. \\
+Quantum path & legacy quantum notebooks, saved states, state-analysis outputs & Existing quantum routing work remains preserved and feeds the same evaluation surface. \\
+Artifacts layer & fairness states, summaries, figures, manifests, reports & The architecture produces evidence that can be reviewed, reproduced, and cited. \\
 \bottomrule
 \end{tabular}
 \end{frame}
 
-\begin{frame}{Next-Semester Extension Points in the Architecture}
+\begin{frame}{Architecture Layers in Detail}
 \small
-\begin{tabular}{p{0.26\textwidth}p{0.34\textwidth}p{0.30\textwidth}}
+\begin{tabular}{p{0.22\textwidth}p{0.32\textwidth}p{0.36\textwidth}}
 \toprule
-\textbf{Extension point} & \textbf{What exists now} & \textbf{Next step} \\
+\textbf{Layer} & \textbf{Key components} & \textbf{Responsibility} \\
 \midrule
-Clinical scenarios & synthetic clinical fixture and COVID evidence artifacts & convert COVID testing and pulse-ox cases into executable environments \\
-Bandit learning & ClinicalBanditUCB and fair allocation smoke path & implement active iCMAB missingness-aware updates \\
-EQUITAS loop & mediation requests and fairness states are produced & close the loop so fairness evidence updates future routing decisions \\
-Quantum routing & preserved legacy path and saved-state analysis & add active fairness-adjusted quantum routing policies \\
-Validation hub & reportable artifacts and summaries & build paper-ready claims-to-evidence reporting \\
+Control + validation & RunSpec, seeds, thresholds, smoke checks, merge criteria & control experiments and acceptance evidence \\
+Execution & Clinical fixture, ClinicalEnvironment, quantum saved states & create decision settings and produce outcome records \\
+Policy + allocation & ClinicalModelRegistry, FairAllocatorV1, ClinicalBanditUCB, allocator & choose routing actions under partial feedback \\
+Mediation + synthesis & ClinicalEquitasMediator, fairness states, evaluator summaries & combine utility, fairness, and intervention context \\
+Artifacts & figures, reports, manifests, state-analysis outputs & make results reproducible and reviewable \\
 \bottomrule
 \end{tabular}
-
-\vspace{0.6em}
-\begin{block}{Main point}
-The architecture is now a shared clinical--quantum evaluation workflow: different environments, one fairness--performance reporting surface.
-\end{block}
 \end{frame}
 
-% ---------------------------------------------------------------------------
-% Architecture slide 2:
-% Explains how the current DSCI601-workspace implementation updates the
-% canonical architecture without replacing it.
-% ---------------------------------------------------------------------------
-
-\begin{frame}{How the Workspace Updates the Architecture}
-\small
-
-\begin{tabular}{p{0.23\textwidth}p{0.34\textwidth}p{0.33\textwidth}}
-\toprule
-\textbf{Architecture region} &
-\textbf{Current workspace implementation} &
-\textbf{Why it matters} \\
-\midrule
-
-High-level CRISP-DM context &
-Business understanding, data understanding, fairness criteria, replication target &
-Keeps the project framed as a reproducible research workflow instead of an isolated model demo. \\
-
-Control layer &
-Repository events, user entry paths, control policy, orchestration path, validation layer, merge/review decision &
-Shows how the system is governed: runs are controlled by seeds, thresholds, smoke checks, CI, and review gates. \\
-
-Execution layer &
-Inherited source layer, data collection, cleaning, preparation/exploration, modeling/mining, evaluation &
-Shows the actual workflow from raw/state inputs to prepared tables, model traces, and evaluation evidence. \\
-
-Fairness--performance layer &
-Allocator context, runner outputs, evaluator summaries, state-analysis tables, fairness summaries &
-This is where the project contribution lives: utility is evaluated together with fairness, not separately after the fact. \\
-
-Artifacts layer &
-Drive paths, retrieved states, cleaned records, prepared tables, mined outputs, evaluation evidence, figures, notebooks, manifests &
-Makes the project reproducible and reviewable because every stage leaves evidence behind. \\
-
-\bottomrule
-\end{tabular}
-
-\vspace{0.5em}
-
-\begin{block}{Main update since the earlier presentation}
-The architecture now supports the clinical fairness path, EQUITAS-style mediation,
-COVID clinical evidence artifacts, and the legacy quantum-routing path under one
-reportable evaluation workflow.
-\end{block}
-
-\end{frame}
-
-
-% -----------------------------------------------------------------------------
-\begin{frame}{Architecture Layer 1: Evidence, Data, and Context}
-\begin{columns}[T]
-\begin{column}{0.48\textwidth}
-\textbf{Inputs}
-\begin{itemize}
-    \item COVID clinical evidence report
-    \item clinical synthetic fixture
-    \item EQUITAS context fields
-    \item quantum legacy saved states
-\end{itemize}
-\end{column}
-\begin{column}{0.48\textwidth}
-\textbf{Context fields}
-\begin{itemize}
-    \item group, site, cohort, service line
-    \item test distribution and escalation action
-    \item reward, success, latency
-    \item route choice, allocator, evaluator state
-\end{itemize}
-\end{column}
-\end{columns}
-
-\vspace{0.6em}
-\begin{block}{Why this layer matters}
-The COVID evidence makes the clinical context concrete: vulnerability, representation, and measurement quality must be modeled before a fair policy can act.
-\end{block}
-\end{frame}
-
-% -----------------------------------------------------------------------------
-\begin{frame}{Architecture Layer 2: Environments and Evaluators}
-\begin{columns}[T]
-\begin{column}{0.48\textwidth}
-\textbf{Clinical path}
-\begin{itemize}
-    \item \texttt{ClinicalEnvironment}
-    \item \texttt{ClinicalExperimentRunner}
-    \item \texttt{ClinicalExperimentEvaluator}
-    \item synthetic clinical resource-allocation fixture
-\end{itemize}
-\end{column}
-\begin{column}{0.48\textwidth}
-\textbf{Quantum path}
-\begin{itemize}
-    \item existing quantum-routing testbed
-    \item evaluator/runner saved-state conventions
-    \item fairness sidecar artifacts
-    \item compatibility with legacy experiments
-\end{itemize}
-\end{column}
-\end{columns}
-
-\vspace{0.6em}
-\begin{block}{Layer relationship}
-The evaluator standardizes outcome records so clinical and quantum runs can be compared through the same reporting and validation surface.
-\end{block}
-\end{frame}
-
-% -----------------------------------------------------------------------------
-\begin{frame}{Architecture Layer 3: Policies and Allocation}
-\begin{center}
-\begin{tabular}{p{0.24\textwidth}p{0.28\textwidth}p{0.35\textwidth}}
-\toprule
-Policy family & Decision signal & Fairness risk \\
-\midrule
-\mab & action history only & can repeat historical allocation patterns \\
-\cmab & observed context & can inherit incomplete or biased context \\
-\icmab & context + missingness/fairness state & can test whether mediated context reduces harm \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.6em}
-\begin{block}{Clinical model families used in smoke validation}
-Oracle, ClinicalBaseline, FairAllocatorV1, and ClinicalBanditUCB.
-\end{block}
-
-\begin{equation*}
-\text{decision}_t = \arg\max_a \left[\text{utility}_{t,a} - \lambda \cdot \text{expected disparity}_{t,a}\right]
-\end{equation*}
-\end{frame}
-
-% -----------------------------------------------------------------------------
-\begin{frame}{Architecture Layer 4: EQUITAS, Reporting, and Validation}
-\begin{columns}[T]
-\begin{column}{0.48\textwidth}
-\textbf{EQUITAS mediation}
-\begin{itemize}
-    \item attaches audit/mitigation context
-    \item tracks group-conditioned outcomes
-    \item separates artifact validation from unvalidated active quantum updates
-\end{itemize}
-\end{column}
-\begin{column}{0.48\textwidth}
-\textbf{Reporting layer}
-\begin{itemize}
-    \item model-stratified fairness summaries
-    \item manifest-linked report artifacts
-    \item validation hub checks evidence claims
-\end{itemize}
-\end{column}
-\end{columns}
-
-\vspace{0.6em}
-\begin{block}{Preliminary framework validation}
-The clinical fairness smoke produced 16 fairness states; report generation produced 21 manifest-linked artifacts.
-\end{block}
-\end{frame}
-
-% -----------------------------------------------------------------------------
-\begin{frame}{Clinical Evidence Graph 1: Context-Blind vs Fair Test Routing}
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[
-    ybar,
-    width=0.95\textwidth,
-    height=0.58\textheight,
-    ymin=0,
-    ymax=10,
-    ylabel={Tests per 1,000 / week},
-    symbolic x coords={Hispanic,Black,Mixed,White,Low-Mixed},
-    xtick=data,
-    x tick label style={rotate=25,anchor=east,font=\scriptsize},
-    bar width=7pt,
-    legend style={at={(0.5,1.05)},anchor=south,legend columns=2,font=\scriptsize},
-    nodes near coords,
-    every node near coord/.append style={font=\tiny,rotate=90,anchor=west}
-]
-\addplot coordinates {(Hispanic,2.1) (Black,2.7) (Mixed,3.1) (White,8.9) (Low-Mixed,7.4)};
-\addplot coordinates {(Hispanic,8.4) (Black,7.9) (Mixed,6.8) (White,4.2) (Low-Mixed,3.8)};
-\legend{Actual routing,Fair CMAB target}
-\end{axis}
-\end{tikzpicture}
-\end{center}
-\vspace{-0.5em}
-\small High-SVI Hispanic, Black, and mixed communities receive more tests under context-aware allocation; low-SVI communities receive fewer because their burden index is lower. This turns context into routing evidence rather than post-hoc explanation.
-\end{frame}
-
-% -----------------------------------------------------------------------------
-\begin{frame}{Clinical Evidence Graph 2: Pulse Oximetry Diagnostic Bias}
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[
-    ybar,
-    width=0.95\textwidth,
-    height=0.58\textheight,
-    ymin=0,
-    ymax=32,
-    ylabel={Occult hypoxemia rate (\%)},
-    symbolic x coords={White,Hispanic,Asian,Black},
-    xtick=data,
-    bar width=6pt,
-    legend style={at={(0.5,1.05)},anchor=south,legend columns=3,font=\scriptsize},
-    nodes near coords,
-    every node near coord/.append style={font=\tiny,rotate=90,anchor=west}
-]
-\addplot coordinates {(White,3.6) (Hispanic,5.1) (Asian,6.3) (Black,11.7)};
-\addplot coordinates {(White,16.7) (Hispanic,21.4) (Asian,24.1) (Black,29.0)};
-\addplot coordinates {(White,14.2) (Hispanic,19.8) (Asian,22.1) (Black,25.6)};
-\legend{Sjoding 2020,Fawzy 2022,Fawzy 2023}
-\end{axis}
-\end{tikzpicture}
-\end{center}
-\vspace{-0.4em}
-\small Across independent studies, Black patients show the highest missed-hypoxemia risk, followed by Asian and Hispanic patients. The same device and threshold produce unequal diagnostic reliability.
-\end{frame}
-
-% -----------------------------------------------------------------------------
-\begin{frame}{Confusion-Matrix Finding: Diagnostic Reliability Is Unequal}
-\begin{columns}[T]
-\begin{column}{0.48\textwidth}
-\textbf{Baseline single threshold}
-\begin{center}
-\small
-\begin{tabular}{lcc}
-\toprule
- & Caught & Missed \\
-\midrule
-White occult hypoxemia & 96\% & 4\% \\
-Black occult hypoxemia & 71\% & 29\% \\
-\bottomrule
-\end{tabular}
-\end{center}
-\vspace{0.4em}
-\alert{Disparity:} about 25 percentage points in missed hypoxemia.
-\end{column}
-\begin{column}{0.48\textwidth}
-\textbf{Fair CMAB + EQUITAS target}
-\begin{center}
-\small
-\begin{tabular}{lcc}
-\toprule
- & Caught & Missed \\
-\midrule
-White occult hypoxemia & 96\% & 4\% \\
-Black occult hypoxemia & 94\% & 6\% \\
-\bottomrule
-\end{tabular}
-\end{center}
-\vspace{0.4em}
-\alert{Target:} reduce the gap to less than 2 percentage points using targeted threshold/ABG mediation.
-\end{column}
-\end{columns}
-
-\vspace{0.6em}
-\begin{block}{Clinical interpretation}
-The fair policy does not need blanket overtesting. It targets the ambiguous SpO$_2$ zone where bias changes treatment eligibility.
-\end{block}
-\end{frame}
-
-% -----------------------------------------------------------------------------
 \begin{frame}{Preliminary Framework Results}
 \begin{center}
 \begin{tabular}{p{0.43\textwidth}p{0.42\textwidth}}
@@ -639,95 +198,63 @@ Quantum compatibility & legacy quantum path preserved with fairness sidecar arti
 \bottomrule
 \end{tabular}
 \end{center}
-\vspace{0.3em}
-\small Boundary: active fairness-adjusted quantum learning still requires an explicit policy-update mechanism and full validation.
 \end{frame}
 
-% -----------------------------------------------------------------------------
 \begin{frame}{GitHub Code Review Break}
 \begin{block}{Show 2--3 classes not used in the midterm}
-During the live code break, open GitHub and connect each class to the architecture diagram.
+Open GitHub and connect each class to the architecture diagram.
 \end{block}
-
-\begin{center}
 \small
-\begin{tabular}{p{0.32\textwidth}p{0.48\textwidth}}
+\begin{tabular}{p{0.34\textwidth}p{0.48\textwidth}}
 \toprule
 Class / file to show & Architecture connection \\
 \midrule
-\texttt{ClinicalExperimentEvaluator} & Layer 2 evaluator orchestration and artifact capture \\
-\texttt{ClinicalExperimentRunner} & Layer 2 run execution over seeds, models, and allocations \\
-\texttt{FairAllocatorV1} or \texttt{ClinicalBanditUCB} & Layer 3 policy/allocation decision logic \\
-\texttt{equitas\_mediator.py} & Layer 4 fairness audit and mitigation context \\
+\texttt{ClinicalExperimentEvaluator} & evaluator orchestration, fairness states, artifacts \\
+\texttt{ClinicalExperimentRunner} & run execution over seeds, models, and allocations \\
+\texttt{ClinicalModelRegistry} & model families: Oracle, baseline, FairAllocatorV1, ClinicalBanditUCB \\
+\texttt{equitas\_mediator.py} & mediation layer and fairness audit context \\
 \bottomrule
 \end{tabular}
-\end{center}
-
-\vspace{0.4em}
-\small Mention comments, formatting, and how the classes expose low coupling/high cohesion across layers.
 \end{frame}
 
-% -----------------------------------------------------------------------------
 \begin{frame}{Working Demo Plan}
 \begin{enumerate}
-    \item Run the clinical fairness demo or smoke validation notebook.
+    \item Run the clinical fairness smoke/demo path.
     \item Show generated fairness states and model-stratified summaries.
     \item Show report artifacts and manifest linkage.
-    \item Open the validation hub and point to the five validated evidence claims.
-    \item Explain how the COVID clinical evidence can become next-semester executable environments.
+    \item Point to the COVID clinical foundation as the clinical evidence base.
+    \item Explain how the quantum legacy path connects to the same fairness--performance layer.
 \end{enumerate}
-
-\vspace{0.6em}
-\begin{block}{Demo objective}
-Show that the system is not only conceptual: it runs, records fairness evidence, and produces artifacts connected to the architecture.
-\end{block}
 \end{frame}
 
-% -----------------------------------------------------------------------------
 \begin{frame}{Next Semester: Architecture Completion}
 \begin{enumerate}
     \item Convert COVID test allocation and pulse-ox evidence into executable clinical environments.
-    \item Add publication-ready figures to the clinical evidence report and presentation pipeline.
-    \item Complete active fairness-adjusted quantum policy updates.
-    \item Extend validation hub into separate efficiency and fairness hubs.
-    \item Build a reporting layer that links framework outputs, validation evidence, and paper claims.
+    \item Complete active iCMAB missingness-aware updates.
+    \item Close the loop so EQUITAS/fairness evidence updates future routing decisions.
+    \item Add active fairness-adjusted quantum routing policies.
+    \item Build a paper-ready validation hub linking claims, experiments, figures, and reproducibility metadata.
 \end{enumerate}
-\vspace{0.6em}
-\begin{block}{Longer-term goal}
-A portal-style reporting surface for queries, experiments, validation, and paper-ready evidence.
-\end{block}
 \end{frame}
 
-% -----------------------------------------------------------------------------
 \begin{frame}{Takeaway}
 \begin{block}{Main scientific claim}
 Context quality is a fairness variable. Missing, ignored, or biased context can turn partial-feedback learning into repeated allocation harm.
 \end{block}
-
 \begin{block}{What was built}
 A clinical--quantum evaluation framework that compares performance and fairness across the selected MAB spectrum while preserving reproducible artifacts.
 \end{block}
-
-\begin{block}{What the new COVID analysis adds}
-COVID test allocation and pulse-ox bias provide real clinical evidence that validates the framework's missing-context harm model.
-\end{block}
 \end{frame}
 
-% -----------------------------------------------------------------------------
-\begin{frame}[allowframebreaks]{Selected References}
+\begin{frame}{Selected References}
 \scriptsize
-\begin{thebibliography}{99}
-\bibitem{bilal2021} Bilal et al. Racial and ethnic inequities in the early distribution of U.S. COVID-19 testing sites. \textit{Social Science \& Medicine}, 2021.
-\bibitem{escobar2021} Escobar et al. Addressing COVID-19 testing inequities among underserved communities. 2021.
-\bibitem{cdcdisparities} CDC/NCHS. COVID-19 provisional counts: health disparities.
-\bibitem{millett2020} Millett et al. Assessing differential impacts of COVID-19 on Black communities. \textit{Annals of Epidemiology}, 2020.
-\bibitem{sjoding2020} Sjoding et al. Racial bias in pulse oximetry measurement. \textit{New England Journal of Medicine}, 2020.
-\bibitem{fawzy2022} Fawzy et al. Racial and ethnic discrepancy in pulse oximetry and delayed identification of treatment eligibility among patients with COVID-19. \textit{JAMA Internal Medicine}, 2022.
-\bibitem{fawzy2023} Fawzy et al. Clinical outcomes associated with overestimation of oxygen saturation by pulse oximetry. \textit{JAMA Network Open}, 2023.
-\bibitem{valbuena2022} Valbuena et al. Racial bias and reproducibility in pulse oximetry among medical and surgical inpatients. \textit{BMJ}, 2022.
-\bibitem{vaesp2022} VA Evidence Synthesis Program. Differential pulse oximeter accuracy, occult hypoxemia prevalence, and clinical outcomes by race/ethnicity.
-\bibitem{garcia2026} Garcia Bautista. DSCI601 project proposal, rough report, architecture, and fairness framework materials.
-\end{thebibliography}
+\begin{itemize}
+\item Sjoding et al. Racial bias in pulse oximetry measurement. \textit{New England Journal of Medicine}, 2020.
+\item Fawzy et al. Pulse oximetry inaccuracy and delayed COVID treatment eligibility. \textit{JAMA Internal Medicine}, 2022.
+\item Fawzy et al. Racial and ethnic discrepancy in pulse oximetry. \textit{JAMA Network Open}, 2023.
+\item CDC/NCHS. COVID-19 provisional counts and health disparities.
+\item DSCI601 workspace and project architecture materials.
+\end{itemize}
 \end{frame}
 
 \end{document}
